@@ -162,7 +162,7 @@ class BaseMensal:
 
     @staticmethod
     def de_planilha(caminho: Path) -> pd.DataFrame:
-        df = pd.read_excel(caminho, sheet_name=0, index_col=0)
+        df = pd.read_excel(caminho, sheet_name=0, index_col=0, engine="openpyxl")
         df.columns = [str(c).split(" | ")[0].strip() for c in df.columns]
         df = df[[c for c in df.columns if c in COLUNAS]]
         df.index = pd.PeriodIndex(df.index.astype(str), freq="M", name="competencia")

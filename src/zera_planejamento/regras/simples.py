@@ -8,8 +8,22 @@ RBT12 e FS12
 - A partir de jan/2027: 12 meses antecedentes ao **mês anterior** ao período de
   apuração — o mês imediatamente anterior sai da conta (art. 18 alterado pela
   LC 214/2025). Ex.: PA maio/2027 → abr/2026 a mar/2027.
+
+Sublimite de R$ 3,6 mi (art. 13-A e art. 20, §§ 1º e 1º-A)
+----------------------------------------------------------
+- Receita do ano-calendário anterior acima de R$ 3,6 mi: ICMS/ISS fora do DAS o ano todo.
+- Receita acumulada no ano acima de R$ 3,6 mi: fora do DAS a partir do mês seguinte se o
+  excesso passar de 20% (R$ 4,32 mi); senão, a partir de janeiro do ano seguinte.
+- Impedida, a empresa recolhe o DAS sem o percentual de ICMS/ISS da repartição
+  (``dados/simples_partilha_icms_iss.csv``) e apura ICMS/ISS pelas regras normais.
+- RBT12 na 6ª faixa: a repartição não tem ICMS/ISS, que ficam fora do DAS
+  [CONFERIR: Res. CGSN 140/2018, art. 25, quando a RBT12 passa do sublimite sem impedimento].
 """
 from __future__ import annotations
+
+import csv
+from functools import lru_cache
+from pathlib import Path
 
 import pandas as pd
 
@@ -43,6 +57,20 @@ def aliquota_efetiva(rbt12: float, anexo: str) -> tuple[float, int]:
             return max((rbt12 * nominal - deduzir) / rbt12, 0.0), faixa
     _, nominal, deduzir = tabela[-1]
     return (rbt12 * nominal - deduzir) / rbt12, 7
+
+
+ISS_EFETIVO_MAXIMO = 0.05          # Anexos III e IV, nota da 5ª faixa: ISS efetivo no DAS até 5%
+
+
+@lru_cache(maxsize=1)
+def _partilha_icms_iss() -> dict[tuple[str, int], float]:
+    with open(Path(__file__).parent / "dados" / "simples_partilha_icms_iss.csv", encoding="utf-8") as f:
+        return {(linha["anexo"], int(linha["faixa"])): float(linha["percentual"]) for linha in csv.DictReader(f)}
+
+
+def percentual_icms_iss(anexo: str, faixa: int) -> float:
+    """Fração do DAS que é ICMS (Anexos I e II) ou ISS (III, IV e V) na repartição de 2026."""
+    return _partilha_icms_iss().get((anexo, min(faixa, 6)), 0.0)
 
 
 def janela_rbt12(pa: pd.Period) -> tuple[pd.Period, pd.Period]:

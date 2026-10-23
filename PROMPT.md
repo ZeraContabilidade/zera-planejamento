@@ -37,21 +37,25 @@ O sistema faz **planejamento tributário mensal com projeção semestral**:
 
 ---
 
-## 3. Estado atual — v0.1.0
+## 3. Estado atual — v0.2.0
 
 ```
 src/zera_planejamento/
-  regras/        simples.py (anexos, RBT12 2026 × 2027), federais.py (Presumido/LC 224, Real), reforma.py (CBS/IBS 2026–2033)
+  regras/        simples.py (anexos, RBT12 2026 × 2027, sublimite), federais.py (Presumido/LC 224, Real), reforma.py (CBS/IBS 2026–2033)
+                 pessoa_fisica.py (INSS/IRRF 2026, Lei 15.270: dividendos e IRPFM)
                  dados/simples_partilha_reforma.csv (partilha do DAS com CBS/IBS — Anexos I e III)
+                 dados/simples_partilha_icms_iss.csv (ICMS/ISS no DAS por anexo e faixa — sublimite)
   base.py        base mensal canônica (colunas, origem de cada valor, CSV, planilha de digitação)
   cliente.py     cadastro e pastas; configuracoes.py (kit visual, assinatura)
   dominio/       leitura.py, relatorios.py (Serviços, Saídas, Entradas, Extrato Mensal, DRE), depara.py, importar.py
   calculo/       comum.py, simples.py (por dentro + híbrido), presumido.py, real.py, motor.py (+ simular_transicao)
   projecao.py    3 cenários; equilibrio.py (break-even e curva); planejamento.py (fluxo completo)
+  socios.py      sócio + empresa (Lei 15.270) e otimizador de pró-labore / Fator R
+  prazos.py      calendário de decisões (dias úteis); carteira.py (painel de todos os clientes)
   relatorio/     graficos.py (PNG), excel.py (gráficos nativos), pdf.py (ReportLab, timbrado)
-  app/           main.py + paginas/ (cadastro, importar, base, planejamento, relatorios, depara, configuracoes)
-  cli.py         zera-planejamento app | clientes | importar | relatorio
-tests/           27 testes: cálculo com memória, leitores (layouts sintéticos), fluxo, app e regressão CS Geartech
+  app/           main.py + paginas/ (cadastro, importar, base, planejamento, socios, relatorios, carteira, depara, configuracoes)
+  cli.py         zera-planejamento app | clientes | importar | relatorio | carteira
+tests/           39 testes: cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
 ```
 
 **Regressão real (CS Geartech, jan–set/2026, `amostras/` fora do git):**
@@ -66,7 +70,8 @@ tests/           27 testes: cálculo com memória, leitores (layouts sintéticos
 **Simples Nacional** (LC 123/2006)
 - Anexos I–V e Fator R (28%).
 - **RBT12/FS12:** 12 meses anteriores até dez/2026; a partir de jan/2027, os 12 meses antecedentes ao **mês anterior** (LC 214/2025).
-- Sublimite de R$ 3,6 mi (ICMS/ISS fora do DAS) e exclusão pela receita do ano (4,8 mi; excesso acima de 20% exclui no mês seguinte).
+- Sublimite de R$ 3,6 mi exato: receita do ano anterior ou acumulada no ano (excesso acima de 20% → mês seguinte); DAS sem a parcela de ICMS/ISS.
+- Exclusão pela receita do ano (4,8 mi; excesso acima de 20% exclui no mês seguinte).
 - Anexo IV com CPP fora do DAS.
 - **Híbrido a partir de 2027:** DAS sem a parcela de CBS/IBS + CBS/IBS não cumulativos por fora.
 
@@ -85,6 +90,14 @@ tests/           27 testes: cálculo com memória, leitores (layouts sintéticos
 - 20% sobre salários e pró-labore.
 - RAT × FAP e Terceiros só sobre salários.
 
+**Sócio pessoa física (Lei 15.270/2025)**
+- INSS 11% do pró-labore até o teto; IRRF 2026 (Lei 15.191/2025) com a redução até R$ 7.350/mês.
+- Lucros acima de R$ 50 mil/mês por sócio e por empresa: IRRF de 10% sobre o total (antecipação).
+- IRPFM: renda anual acima de R$ 600 mil, até 10% a partir de R$ 1,2 mi, com redutor PJ + PF até 34%.
+
+**Prazos de decisão**
+- Opção/exclusão do Simples (último dia útil de janeiro), Presumido (1ª quota do IRPJ, abril), Real anual (estimativa de janeiro), opção semestral do híbrido, alíquota da CBS.
+
 **Reforma**
 
 | Período | CBS | IBS | ICMS/ISS |
@@ -102,7 +115,9 @@ tests/           27 testes: cálculo com memória, leitores (layouts sintéticos
 - partilha do Simples dos Anexos II, IV e V;
 - LC 224/2025 sob questionamento judicial;
 - inclusão da CPP do DAS no Fator R;
-- sublimite calculado pela RBT12 (simplificação).
+- RBT12 na 6ª faixa sem impedimento pelo sublimite (Res. CGSN 140, art. 25);
+- Lei 15.270: redutor do IRPFM, restituição do IRRF excedente e alíquota da PJ no Simples;
+- tabelas da pessoa física de 2026 e prazos de opção do Simples híbrido.
 
 ---
 
@@ -138,15 +153,15 @@ Cada item traz o critério de aceite. Os itens **P1** têm o maior ganho para o 
 ### P1 — Decisão do cliente
 
 5. **Parecer ao cliente em Word + PDF** com o timbrado da Zera (skill `identidade-visual-zera`, `zera_doc.js`), em 1–2 páginas de linguagem simples: o que muda, quanto custa, o que recomendamos e até quando decidir. O PDF técnico continua sendo o documento interno.
-6. **Lei 15.270/2025 — visão sócio + empresa.** Somar à carga da PJ a retenção de 10% sobre dividendos acima de R$ 50 mil/mês por sócio e o IR mínimo da pessoa física. Cadastrar sócios, percentual de distribuição e pró-labore. Pode inverter a recomendação para quem distribui muito lucro.
+6. ✅ *(v0.2.0)* **Lei 15.270/2025 — visão sócio + empresa.** Somar à carga da PJ a retenção de 10% sobre dividendos acima de R$ 50 mil/mês por sócio e o IR mínimo da pessoa física. Cadastrar sócios, percentual de distribuição e pró-labore. Pode inverter a recomendação para quem distribui muito lucro.
 7. **Simples híbrido de verdade.** Partilha dos Anexos II, IV e V; percentual da receita vendida para PJ (que aproveita o crédito); estimativa do ganho comercial do cliente; calendário da opção semestral do CGSN.
-8. **Otimizador de pró-labore e Fator R.** Sugerir o pró-labore que minimiza DAS + INSS (11% do sócio; 20% patronal fora do Simples) + IRPF do sócio.
+8. ✅ *(v0.2.0; falta IRPF anual e efeito nos dividendos)* **Otimizador de pró-labore e Fator R.** Sugerir o pró-labore que minimiza DAS + INSS (11% do sócio; 20% patronal fora do Simples) + IRPF do sócio.
 
 ### P2 — Escala no escritório
 
-9. **Painel da carteira.** Rodar todos os clientes e listar quem deveria mudar de regime antes de janeiro (a opção é irretratável no ano), com economia estimada. Gerar em novembro/dezembro.
+9. ✅ *(v0.2.0)* **Painel da carteira.** Rodar todos os clientes e listar quem deveria mudar de regime antes de janeiro (a opção é irretratável no ano), com economia estimada. Gerar em novembro/dezembro.
 10. **Planejado × realizado.** Guardar cada planejamento e comparar com o mês fechado seguinte (erro da projeção, mudança de regime sugerida).
-11. **Prazos e calendário.** Alertas da opção do Simples (último dia útil de janeiro), da opção semestral pelo IBS/CBS e da fixação anual da alíquota da CBS.
+11. ✅ *(v0.2.0; falta alerta por e-mail/agenda)* **Prazos e calendário.** Alertas da opção do Simples (último dia útil de janeiro), da opção semestral pelo IBS/CBS e da fixação anual da alíquota da CBS.
 12. **Pasta de dados na rede** (ex.: `Z:\...`) com trava simples de edição, backup e log de quem importou e gerou cada relatório (LGPD e rastreabilidade).
 
 ### P2 — Cobertura de regras
@@ -154,7 +169,7 @@ Cada item traz o critério de aceite. Os itens **P1** têm o maior ganho para o 
 13. Segregação de **ICMS-ST, monofásicos e exportação** no Simples (CFOP/CST/NCM das saídas).
 14. **Presunções específicas por atividade** no Presumido (transporte, hospitalar etc.), por CNAE ou acumulador.
 15. **Crédito sobre imobilizado** no Real (depreciação) e na CBS/IBS (na aquisição, já marcado no De-Para).
-16. **Sublimite exato** pela receita acumulada no ano e regra do mês de ultrapassagem.
+16. ✅ *(v0.2.0)* **Sublimite exato** pela receita acumulada no ano e regra do mês de ultrapassagem.
 17. **Regras com vigência por data** (tabelas versionadas em CSV/YAML com "válido de/até"), para recalcular períodos antigos com a regra da época.
 
 ### P3 — Distribuição e manutenção
@@ -167,7 +182,7 @@ Cada item traz o critério de aceite. Os itens **P1** têm o maior ganho para o 
 
 ## 7. Próxima tarefa sugerida
 
-Começar pelos itens **1 e 2**: o "DAS calculado × DAS pago" valida todo o resto, e a DRE mensal corrige a maior fonte de distorção do Lucro Real.
+A v0.2.0 entregou os itens 6, 8, 9, 11 e 16. Seguir pelos itens **1 e 2**: o "DAS calculado × DAS pago" valida todo o resto, e a DRE mensal corrige a maior fonte de distorção do Lucro Real.
 
 Antes de codificar:
 - me peça um extrato do PGDAS-D e DREs mensais de exemplo, exportados do Domínio;

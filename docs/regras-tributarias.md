@@ -10,7 +10,7 @@ Fonte de verdade: o código em `src/zera_planejamento/regras/` e `calculo/`. Est
 | RBT12/FS12 desde 01/2027 | 12 meses antecedentes ao mês anterior ao PA | art. 18 com redação da LC 214/2025 |
 | Início de atividade / histórico curto | média dos meses disponíveis × 12 | Res. CGSN 140/2018, art. 22 |
 | Fator R | FS12 ÷ RBT12 ≥ 28% → Anexo III; senão V. FS12 = salários + pró-labore + FGTS (+ CPP do DAS, opção `[CONFERIR]`) | art. 18, §§ 5º-J, 5º-M e 24 |
-| Sublimite | RBT12 > R$ 3,6 mi → ICMS/ISS fora do DAS `[CONFERIR: simplificado]` | art. 13-A |
+| Sublimite | receita do ano anterior > R$ 3,6 mi → impedida o ano todo; acumulada no ano > R$ 4,32 mi → a partir do mês seguinte. Impedida: DAS sem a parcela de ICMS/ISS (`regras/dados/simples_partilha_icms_iss.csv`) e ICMS/ISS apurados fora. RBT12 na 6ª faixa: ICMS/ISS fora `[CONFERIR Res. CGSN 140, art. 25]` | art. 13-A; art. 20, §§ 1º e 1º-A |
 | Exclusão | receita do ano > R$ 4,8 mi → a partir de janeiro seguinte; > R$ 5,76 mi → mês seguinte | art. 3º, §§ 9º e 9º-A |
 | Anexo IV | CPP (20% + RAT × FAP) fora do DAS | art. 13, § 3º; art. 18, § 5º-C |
 | Partilha com CBS/IBS (2027+) | `regras/dados/simples_partilha_reforma.csv` — Anexos I e III `[CONFERIR]` | LC 214/2025 |
@@ -35,6 +35,23 @@ Fonte de verdade: o código em `src/zera_planejamento/regras/` e `calculo/`. Est
 
 ## Encargos sobre a folha (Presumido e Real)
 INSS patronal 20% sobre salários e pró-labore; RAT × FAP e Terceiros só sobre salários (Lei 8.212/91, art. 22).
+
+## Sócio pessoa física — pró-labore e lucros (2026)
+| Regra | Implementação | Base |
+|---|---|---|
+| INSS do sócio | 11% do pró-labore até o teto (R$ 8.475,55) | Lei 8.212/91, art. 21 e 30, § 4º; Lei 10.666/03, art. 4º |
+| IRRF do pró-labore | tabela mensal; deduz INSS + dependentes (R$ 189,59) ou o simplificado (R$ 607,20) | Lei 15.191/2025 |
+| Redução do IR | até R$ 5.000/mês: até R$ 312,89 (IR zero); até R$ 7.350: 978,62 − 0,133145 × rendimento | Lei 15.270/2025 |
+| IRRF sobre lucros | 10% sobre o total pago no mês se a mesma PJ pagar mais de R$ 50 mil à mesma PF (antecipação) | Lei 15.270/2025 |
+| IRPFM | renda anual > R$ 600 mil: (renda ÷ 60.000 − 10)%, 10% a partir de R$ 1,2 mi; deduz IR da tabela e o redutor (PJ + PF até 34%) `[CONFERIR]` | Lei 15.270/2025 |
+| Lucro distribuível | lucro contábil depois dos tributos do regime (CBS/IBS por fora não reduzem) × fração distribuída | (premissa do cadastro) |
+| Simples | alíquota efetiva da PJ para o redutor = 0% `[CONFERIR]`; retenção sobre lucros do Simples com divergência | — |
+
+## Prazos de decisão
+Opção pelo Simples e exclusão por opção até o último dia útil de janeiro (LC 123, art. 16, § 2º, e art. 30, § 1º, I);
+Presumido com a 1ª quota do IRPJ do 1º trimestre (último dia útil de abril; Lei 9.430/96, art. 26, § 1º); Real anual com
+a estimativa de janeiro; opção semestral do Simples pelo IBS/CBS por fora em abril e setembro `[CONFERIR]` (LC 214/2025,
+art. 41). Dias úteis sem feriados nacionais (fixos e Sexta-feira Santa).
 
 ## Reforma Tributária — EC 132/2023 e LC 214/2025
 
@@ -61,4 +78,4 @@ INSS patronal 20% sobre salários e pró-labore; RAT × FAP e Terceiros só sobr
 - desoneração da folha;
 - JCP e incentivos do Lucro Real;
 - crédito de PIS/Cofins sobre depreciação;
-- Lei 15.270/2025 (dividendos e IR mínimo da pessoa física) — previsto no roadmap.
+- IRPFM de sócios de seguradoras e instituições financeiras (limites de 40% e 45%) e rendimentos isentos da base do IRPFM.

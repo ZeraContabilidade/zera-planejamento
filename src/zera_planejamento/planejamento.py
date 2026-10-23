@@ -1,4 +1,4 @@
-"""Fluxo completo: base do cliente → histórico → cenários → equilíbrio → transição."""
+"""Fluxo completo: base do cliente → histórico → cenários → equilíbrio → transição → sócios → prazos."""
 from __future__ import annotations
 
 import datetime as dt
@@ -11,8 +11,10 @@ from .base import BaseMensal
 from .calculo import Resultado, calcular, simular_transicao
 from .cliente import Cliente
 from .equilibrio import curva_margem, margem_operacional, pontos_equilibrio
+from .prazos import prazos
 from .projecao import CENARIOS, Cenario, projetar
 from .regras import pendencias_conferir
+from .socios import VisaoSocios, visao_socios
 
 
 @dataclass
@@ -27,6 +29,8 @@ class Planejamento:
     curva: pd.DataFrame
     transicao: pd.DataFrame
     alertas: Alertas
+    socios: VisaoSocios | None = None
+    prazos: pd.DataFrame = field(default_factory=pd.DataFrame)
     gerado_em: dt.datetime = field(default_factory=dt.datetime.now)
     pendencias: list[str] = field(default_factory=pendencias_conferir)
 
@@ -44,7 +48,9 @@ class Planejamento:
         return margem_operacional(n.base_completa, n.meses)
 
 
-def gerar_planejamento(cliente: Cliente, base: BaseMensal, com_transicao: bool = True) -> Planejamento:
+def gerar_planejamento(cliente: Cliente, base: BaseMensal, com_transicao: bool = True,
+                       com_equilibrio: bool = True) -> Planejamento:
+    """``com_equilibrio=False`` pula o break-even (o passo mais lento), útil no painel da carteira."""
     alertas = Alertas()
     rb = base.receita_bruta()
     com_receita = rb.index[rb > 0]
@@ -67,7 +73,12 @@ def gerar_planejamento(cliente: Cliente, base: BaseMensal, com_transicao: bool =
         if not m.empty and m.iloc[0]["economia_vs_2o"] < 0.03 * m.iloc[0]["tributos"]:
             alertas.atencao("Resultado", f"Cenário {nome}: vantagem do {m.iloc[0]['rotulo']} sobre o 2º colocado é "
                                          "menor que 3% — qualquer ajuste de premissa pode inverter a ordem.")
+    socios = visao_socios(cliente, neutro.base_completa, neutro.resultado, neutro.meses)
+    m = resumo[(resumo.cenario == "Neutro") & resumo.melhor]
     return Planejamento(
         cliente=cliente, base=base, historico=historico, meses_historico=meses_hist, cenarios=cenarios,
-        resumo=resumo, equilibrio=pontos_equilibrio(neutro, cliente), curva=curva_margem(neutro, cliente),
-        transicao=simular_transicao(hist_base, cliente) if com_transicao else pd.DataFrame(), alertas=alertas)
+        resumo=resumo,
+        equilibrio=pontos_equilibrio(neutro, cliente) if com_equilibrio else pd.DataFrame(),
+        curva=curva_margem(neutro, cliente) if com_equilibrio else pd.DataFrame(),
+        transicao=simular_transicao(hist_base, cliente) if com_transicao else pd.DataFrame(), alertas=alertas,
+        socios=socios, prazos=prazos(cliente, m.iloc[0]["regime"] if not m.empty else None))

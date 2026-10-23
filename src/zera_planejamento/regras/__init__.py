@@ -27,7 +27,14 @@ def pendencias_conferir() -> list[str]:
         "não é calculado para eles.",
         "LC 224/2025: acréscimo de 10% na presunção do Presumido tem questionamento judicial.",
         "Fator R: inclusão da CPP recolhida no DAS na folha é opção do cliente (padrão: não incluir).",
-        "Sublimite de R$ 3,6 mi: simplificado pela RBT12; a regra exata usa a receita acumulada no ano.",
+        "Sublimite de R$ 3,6 mi: com RBT12 na 6ª faixa e empresa ainda não impedida, ICMS/ISS ficam fora do DAS; "
+        "conferir a regra da Res. CGSN 140/2018, art. 25. Partilha de ICMS/ISS de 2026 transcrita dos Anexos da LC 123.",
+        "Lei 15.270/2025: redutor do IRPFM (carga PJ + PF até 34%), restituição do IRRF de 10% excedente e "
+        "alíquota efetiva da PJ no Simples (o sistema usa 0%, o que pode superestimar o IRPFM) dependem de "
+        "regulamentação. A retenção sobre lucros de empresa do Simples tem divergência de entendimento.",
+        "Tabelas de 2026 da pessoa física (salário mínimo R$ 1.621,00, teto do INSS R$ 8.475,55, IRRF da "
+        "Lei 15.191/2025): conferir a atualização anual.",
+        "Prazos de opção do Simples híbrido (IBS/CBS por fora): conferir a resolução do CGSN vigente.",
     ]
 
 

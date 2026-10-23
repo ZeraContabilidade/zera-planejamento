@@ -34,8 +34,8 @@ FORA_DO_MODELO = [
     "ICMS-ST, produtos monofásicos e segregação de receitas no PGDAS-D; IPI e Imposto Seletivo; benefícios estaduais "
     "e municipais; ISS fixo de sociedade uniprofissional; desoneração da folha; JCP e incentivos do Lucro Real.",
     "Crédito de PIS/Cofins sobre depreciação do imobilizado (no Lucro Real) e retenções na fonte compensáveis.",
-    "Lei 15.270/2025: retenção de 10% sobre dividendos acima de R$ 50 mil/mês por sócio e IR mínimo da pessoa física — "
-    "pode mudar a conclusão para sócios com alta distribuição, sobretudo no Simples e no Presumido.",
+    "Lei 15.270/2025: só entra na conclusão quando os sócios estão cadastrados (seção Sócios + empresa); "
+    "rendimentos de outras fontes dependem do que foi informado.",
     "A opção de regime é anual e irretratável (Simples até o último dia útil de janeiro; Presumido/Real com o "
     "primeiro pagamento do ano); a opção semestral pelo IBS/CBS no Simples segue o calendário do CGSN.",
 ]
@@ -192,6 +192,33 @@ def exportar_pdf(pl, caminho: Path, graficos: dict[str, Path]) -> Path:
         esc = largura / im.imageWidth
         im.drawWidth, im.drawHeight = largura, im.imageHeight * esc
         return KeepTogether([im, Paragraph(legenda, e["legenda"])])
+
+    if pl.socios is not None and not pl.socios.vazia:
+        h += [Paragraph("SÓCIOS + EMPRESA", e["rotulo"]),
+              Paragraph("Tributos da empresa somados à retirada dos sócios (Lei 15.270/2025)", e["h2"])]
+        cab = ("Regime", "Empresa", "Lucros distribuídos", "IRPFM", "INSS + IRRF pró-labore", "Total", "Carga")
+        linhas, dest = [[Paragraph(x, e["cab"]) for x in cab]], []
+        for lin in pl.socios.resumo.itertuples():
+            st = e["celb"] if lin.melhor else e["cel"]
+            if lin.melhor:
+                dest.append(len(linhas))
+            linhas.append([Paragraph(lin.rotulo, st), Paragraph(brl(lin.tributos_pj), st), Paragraph(brl(lin.dividendos), st),
+                           Paragraph(brl(lin.irpfm), st), Paragraph(brl(lin.inss_socios + lin.irrf_pro_labore), st),
+                           Paragraph(brl(lin.carga_total), st), Paragraph(pct(lin.carga_pct), st)])
+        h.append(_tabela(linhas, [4.0 * cm, 2.3 * cm, 2.5 * cm, 2.0 * cm, 2.4 * cm, 2.3 * cm, largura - 15.5 * cm], dest))
+        for o in pl.socios.observacoes:
+            h.append(Paragraph(o, e["item"], bulletText="•"))
+        h.append(Paragraph("IRRF de 10% sobre lucros acima de R$ 50 mil/mês por sócio é antecipação e abate do IRPFM no "
+                           "ajuste anual; o custo definitivo considerado é o IRPFM.", e["legenda"]))
+
+    if pl.prazos is not None and not pl.prazos.empty:
+        h += [Paragraph("PRAZOS DE DECISÃO", e["rotulo"])]
+        linhas = [[Paragraph(x, e["cab"]) for x in ("Data", "Ação", "Evento", "Base legal")]]
+        for z in pl.prazos.itertuples():
+            st = e["celb"] if z.acao == "DECIDIR" else e["cel"]
+            linhas.append([Paragraph(f"{z.data:%d/%m/%Y}", st), Paragraph(z.acao, st), Paragraph(z.evento, e["cel"]),
+                           Paragraph(z.base_legal, e["cel"])])
+        h.append(_tabela(linhas, [2.2 * cm, 2.2 * cm, largura - 9.4 * cm, 5.0 * cm], alinhar_dir_de=99))
 
     h += [PageBreak(), Paragraph("GRÁFICOS", e["rotulo"])]
     legendas = {"historico": "Gráfico 1 — Tributos mês a mês no histórico, mesmos dados nos quatro regimes.",

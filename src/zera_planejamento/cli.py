@@ -5,6 +5,7 @@ Linha de comando.
     zera-planejamento clientes                             lista os clientes cadastrados
     zera-planejamento importar --cliente ID arquivos...    importa relatórios do Domínio para a base
     zera-planejamento relatorio --cliente ID               calcula e gera Excel + PDF
+    zera-planejamento carteira [--excel arquivo.xlsx]      painel: quem deveria mudar de regime
 """
 from __future__ import annotations
 
@@ -34,6 +35,8 @@ def main(argv=None) -> int:
     pi.add_argument("arquivos", nargs="+")
     pr = sub.add_parser("relatorio", help="Gera Excel e PDF")
     pr.add_argument("--cliente", required=True)
+    pc = sub.add_parser("carteira", help="Painel da carteira: quem deveria mudar de regime")
+    pc.add_argument("--excel", help="Salva o painel neste arquivo .xlsx")
     a = ap.parse_args(argv)
 
     if a.comando == "app":
@@ -50,6 +53,21 @@ def main(argv=None) -> int:
         print(f"Dados em {pasta_dados()}")
         for c in listar_clientes():
             print(f"  {c.id:45s} {c.nome}")
+        return 0
+    if a.comando == "carteira":
+        from .carteira import analisar_carteira
+        from .formatos import brl
+        df = analisar_carteira(progresso=lambda i, n, nome: print(f"[{i}/{n}] {nome}", file=sys.stderr))
+        if df.empty:
+            print("Nenhum cliente cadastrado.")
+            return 0
+        for r in df.itertuples():
+            economia = getattr(r, "economia_ano", float("nan"))
+            extra = f" — economia estimada {brl(economia)}/ano" if economia == economia and r.situacao == "MUDAR" else ""
+            print(f"{r.situacao:13s} {r.cliente[:45]:45s} {r.leitura}{extra}")
+        if a.excel:
+            df.to_excel(a.excel, index=False)
+            print(f"Excel: {a.excel}")
         return 0
     c = _cliente(a.cliente)
     from .base import BaseMensal
