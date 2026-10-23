@@ -108,3 +108,24 @@ def test_painel_do_dashboard(base_exemplo, cliente):
     assert set(p.mensal["fase"]) == {"Histórico", "Projeção"}
     h = montar_painel(pl, "Neutro", "historico")
     assert len(h.meses) == 12 and h.indicadores["n_meses"] == 12
+
+
+def test_parecer_ao_cliente(tmp_path, base_exemplo, cliente):
+    import zipfile
+
+    import docx
+
+    from zera_planejamento.relatorio.parecer import gerar_parecer, montar_parecer
+    pl = gerar_planejamento(cliente, base_exemplo, com_transicao=False, com_equilibrio=False)
+    par = montar_parecer(pl)
+    melhor = pl.melhor("Neutro")
+    # a linha destacada da tabela é o regime recomendado, com o custo anualizado do motor
+    assert par.tabela[par.destaque][3].endswith("ecomendado")
+    assert par.tabela[par.destaque][1].replace(".", "").endswith(f"{round(melhor['tributos'] * 2):,}".replace(",", ""))
+    assert [n for n, _, _ in par.cards] == ["01", "02", "03"]
+    arqs = gerar_parecer(pl, tmp_path)
+    texto = "\n".join(p.text for p in docx.Document(arqs["docx"]).paragraphs)
+    assert cliente.nome in texto and "Equipe Zera Contabilidade" in texto
+    with zipfile.ZipFile(arqs["docx"]) as z:          # fontes da Zera embutidas no Word
+        assert sum(n.endswith(".odttf") for n in z.namelist()) == 4
+    assert arqs["pdf"].stat().st_size > 20_000

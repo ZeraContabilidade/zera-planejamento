@@ -1,5 +1,23 @@
 # Histórico de versões
 
+## 0.5.0 — 23/10/2026
+**Parecer ao cliente (Word + PDF)** — item 5 do roadmap
+- Uma página em linguagem simples, com o timbrado da Zera: recomendação, economia ou carga estimada, prazo de decisão,
+  tabela dos regimes por ano, o que muda na prática, pontos de atenção (Fator R, Lei 15.270, Reforma) e próximo passo.
+- Word no layout do modelo `zera_doc.js` do kit (faixa do timbrado, rótulos dourados, cartões 01-02-03, rodapé com
+  página) e com as fontes Cormorant Garamond e Inter embutidas; PDF equivalente. Conferido no Microsoft Word.
+- Tela Relatórios reorganizada: "Para o cliente" (parecer) e "Uso interno" (Excel e PDF técnico); downloads por cliente.
+
+**Validação do planejamento**
+- `tests/test_validacao_casos.py`: 9 empresas fictícias calculadas à mão pela lei (Simples Anexos I e III, Presumido
+  com LC 224 e adicional do IRPJ, Real com prejuízo e trava de 30%, CBS/IBS 2027, coerência dos cenários). O motor
+  bate em todos.
+
+**Navegação**
+- Roteiro do cliente na barra lateral (cadastro com CNPJ, relatórios do Domínio, 13 meses de receita, DRE, sócios,
+  parecer), com atalho para cada etapa e o próximo passo em destaque.
+- Dashboard sem base mostra o guia de início; depois de salvar o cadastro ou importar, links para o passo seguinte.
+
 ## 0.4.0 — 23/10/2026
 **Cadastro pelo CNPJ (dados abertos da Receita Federal)**
 - Botão **Buscar na Receita** no Cadastro: preenche razão social, CNPJ, município, UF e atividade (CNAE).

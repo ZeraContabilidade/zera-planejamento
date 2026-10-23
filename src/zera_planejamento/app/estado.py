@@ -70,6 +70,25 @@ def md(texto: str) -> str:
     return str(texto).replace("$", r"\$")
 
 
+def passos_do(cliente: Cliente, base: BaseMensal) -> list[dict]:
+    """Roteiro do cliente: cada etapa com a página que resolve e se já foi feita (mostrado na barra lateral)."""
+    from zera_planejamento.consulta_cnpj import cnpj_valido
+    rb = base.receita_bruta()
+    meses_receita = int((rb > 0).sum())
+    tem_dre = len(base.meses) > 0 and base.dados[["custos", "despesas"]].notna().any().any()
+    pareceres = cliente.pasta() / "relatorios" / "pareceres"
+    return [
+        {"chave": "cadastro", "rotulo": "Cadastro com CNPJ", "pagina": "cadastro", "feito": cnpj_valido(cliente.cnpj)},
+        {"chave": "importar", "rotulo": "Relatórios do Domínio", "pagina": "importar", "feito": meses_receita > 0},
+        {"chave": "historico", "rotulo": "13 meses de receita", "pagina": "importar", "feito": meses_receita >= 13,
+         "dica": f"{meses_receita} mês(es) com receita: a RBT12 do Simples usa os 12 anteriores."},
+        {"chave": "dre", "rotulo": "Custos e despesas (DRE)", "pagina": "importar", "feito": bool(tem_dre)},
+        {"chave": "socios", "rotulo": "Sócios cadastrados", "pagina": "socios", "feito": bool(cliente.socios)},
+        {"chave": "parecer", "rotulo": "Parecer ao cliente", "pagina": "relatorios",
+         "feito": pareceres.exists() and any(pareceres.glob("*.docx"))},
+    ]
+
+
 def mostrar_alertas(df: pd.DataFrame, titulo: str = "Alertas") -> None:
     if df is None or df.empty:
         st.success("Nenhum alerta.", icon=":material/check_circle:")
@@ -98,4 +117,5 @@ def tabela_brl(df: pd.DataFrame, colunas_pct: tuple[str, ...] = ()) -> pd.DataFr
 
 
 __all__ = ["clientes", "cliente_atual", "exigir_cliente", "base_do", "planejamento_do", "mostrar_alertas", "md",
+           "passos_do",
            "tabela_brl", "pasta_dados"]

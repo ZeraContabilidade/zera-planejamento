@@ -1,6 +1,8 @@
 # Manual da equipe — Zera Planejamento Tributário
 
 ## 1. Abrir o sistema
+- Na barra lateral, o **Roteiro do cliente** mostra o que já foi feito e o próximo passo; clique em cada item para ir
+  direto à tela.
 - Dois cliques em **Iniciar Zera Planejamento.bat**. Abre uma janela preta e, em seguida, o navegador. Mantenha a janela preta aberta enquanto usa.
 - Primeira vez no computador: rode antes o **instalar.bat**.
 
@@ -69,6 +71,8 @@ Também dá para baixar a base em Excel, preencher e enviar de volta.
 - **Calcular pró-labore ótimo** mostra o pró-labore de menor custo e quanto falta para o Fator R chegar a 28%.
 
 ## 7. Relatórios (página **Relatórios**)
+- **Parecer ao cliente (Word + PDF):** uma página em linguagem simples com a recomendação, os valores por ano e o
+  prazo. Revise no Word e envie o PDF.
 - **Excel:** resumo, uma aba por regime com memória mês a mês, base, origem dos dados, projeções, transição, premissas e alertas.
 - **PDF:** técnico, com o timbrado da Zera (configure o kit em **Configurações**).
 

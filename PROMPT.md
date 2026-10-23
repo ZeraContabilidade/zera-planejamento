@@ -37,7 +37,7 @@ O sistema faz **planejamento tributário mensal com projeção semestral**:
 
 ---
 
-## 3. Estado atual — v0.4.0
+## 3. Estado atual — v0.5.0
 
 ```
 src/zera_planejamento/
@@ -53,12 +53,12 @@ src/zera_planejamento/
   projecao.py    3 cenários; equilibrio.py (break-even e curva); planejamento.py (fluxo completo)
   socios.py      sócio + empresa (Lei 15.270) e otimizador de pró-labore / Fator R
   prazos.py      calendário de decisões (dias úteis); carteira.py (painel de todos os clientes)
-  relatorio/     graficos.py (PNG), excel.py (gráficos nativos), pdf.py (ReportLab, timbrado)
+  relatorio/     graficos.py (PNG), excel.py (gráficos nativos), pdf.py (ReportLab, timbrado), parecer.py (Word + PDF ao cliente)
   painel.py      dados do dashboard (recorte por cenário e período, indicadores)
   app/           main.py, visual.py (identidade Zera), .streamlit/config.toml (tema), static/ (logo e fontes)
                  paginas/ (dashboard, cadastro, importar, base, planejamento, socios, relatorios, carteira, depara, configuracoes)
   cli.py         zera-planejamento app | clientes | importar | relatorio | carteira
-tests/           45 testes: cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
+tests/           54 testes (inclui test_validacao_casos.py, casos calculados à mão): cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
 ```
 
 **Regressão real (CS Geartech, jan–set/2026, `amostras/` fora do git):**
@@ -155,7 +155,7 @@ Cada item traz o critério de aceite. Os itens **P1** têm o maior ganho para o 
 
 ### P1 — Decisão do cliente
 
-5. **Parecer ao cliente em Word + PDF** com o timbrado da Zera (skill `identidade-visual-zera`, `zera_doc.js`), em 1–2 páginas de linguagem simples: o que muda, quanto custa, o que recomendamos e até quando decidir. O PDF técnico continua sendo o documento interno.
+5. ✅ *(v0.5.0)* **Parecer ao cliente em Word + PDF** com o timbrado da Zera (skill `identidade-visual-zera`, `zera_doc.js`), em 1–2 páginas de linguagem simples: o que muda, quanto custa, o que recomendamos e até quando decidir. O PDF técnico continua sendo o documento interno.
 6. ✅ *(v0.2.0)* **Lei 15.270/2025 — visão sócio + empresa.** Somar à carga da PJ a retenção de 10% sobre dividendos acima de R$ 50 mil/mês por sócio e o IR mínimo da pessoa física. Cadastrar sócios, percentual de distribuição e pró-labore. Pode inverter a recomendação para quem distribui muito lucro.
 7. **Simples híbrido de verdade.** Partilha dos Anexos II, IV e V; percentual da receita vendida para PJ (que aproveita o crédito); estimativa do ganho comercial do cliente; calendário da opção semestral do CGSN.
 8. ✅ *(v0.2.0; falta IRPF anual e efeito nos dividendos)* **Otimizador de pró-labore e Fator R.** Sugerir o pró-labore que minimiza DAS + INSS (11% do sócio; 20% patronal fora do Simples) + IRPF do sócio.
