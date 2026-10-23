@@ -1,6 +1,6 @@
 # CLAUDE.md — instruções para o Claude Code neste repositório
 
-Leia o `PROMPT.md` (especificação, decisões e roadmap) antes de qualquer mudança.
+Leia o `PROMPT.md` (especificação, decisões e roadmap) antes de qualquer mudança. Outros agentes (Codex) trabalham em paralelo conforme `AGENTS.md`: respeite a divisão de arquivos da seção 9 de lá.
 
 ## Comandos
 - Instalar (dev): `python -m pip install -e .[dev]`
