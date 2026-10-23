@@ -79,6 +79,8 @@ class Layout:
     coluna_rotulo: int | None = None
     coluna_data: int | None = None              # linhas: coluna com a competência
     colunas_valor: list[int] = field(default_factory=list)
+    competencia_sugerida: pd.Period | None = None   # data achada no título (documento de um período)
+    talvez_acumulado: bool = False                  # título fala em exercício/período de vários meses
 
     def descricao(self) -> str:
         if self.tipo == "colunas":
@@ -265,28 +267,62 @@ def detectar_layout(tab: Tabela) -> Layout:
         n = sum(competencia(l[j]) is not None for l in linhas if j < len(l))
         if n >= 2:
             valores = [k for k in range(largura) if k != j and
-                       sum(_valor(l[k]) is not None for l in linhas if k < len(l) and competencia(l[j]) is not None) >= 2]
+                       sum(_valor(l[k]) is not None for l in linhas
+                           if k < len(l) and j < len(l) and competencia(l[j]) is not None) >= 2]
             if valores:
                 return Layout("linhas", coluna_data=j, colunas_valor=valores)
-    # 3) um período só: rótulo + valor
-    rot = max(range(largura), key=lambda j: sum(_texto(l[j]) for l in linhas if j < len(l)))
-    numericas = [k for k in range(largura) if k != rot and sum(_valor(l[k]) is not None for l in linhas if k < len(l)) >= 2]
-    return Layout("unico", coluna_rotulo=rot, colunas_valor=numericas[-1:] if numericas else [])
+    # 3) um período só: rótulo (primeiro texto à esquerda) + coluna de valor
+    contagem = {k: sum(1 for l in linhas if k < len(l) and _valor(l[k]) is not None and _rotulo(l, k))
+                for k in range(1, largura)}
+    contagem = {k: n for k, n in contagem.items() if n >= 2}
+    valor = None
+    if contagem:   # entre as colunas mais cheias, a mais à esquerda (saldo analítico antes de "soma"/"total")
+        maximo = max(contagem.values())
+        valor = min(k for k, n in contagem.items() if n >= 0.6 * maximo)
+    datas = _datas_no_titulo(linhas)
+    titulo = " ".join(normalizar(c) for l in linhas[:10] for c in l if isinstance(c, str))
+    return Layout("unico", colunas_valor=[valor] if valor is not None else [],
+                  competencia_sugerida=max(datas) if datas else None,
+                  talvez_acumulado=("exercicio" in titulo or "acumulad" in titulo or len(set(datas)) > 1))
 
 
 def _cabecalho_coluna(tab: Tabela, j: int, ate: int) -> str:
-    for linha in tab.linhas[:ate]:
+    """Título da coluna: o texto mais próximo acima da primeira linha de dados."""
+    for linha in reversed(tab.linhas[:ate]):
         if j < len(linha) and _texto(linha[j]):
             return str(linha[j]).strip()
     return f"Coluna {j + 1}"
+
+
+def _rotulo(linha: list, limite: int) -> str | None:
+    """Primeiro texto da linha à esquerda dos valores (rótulos de DRE/balancete mudam de coluna conforme o nível)."""
+    for c in linha[:limite]:
+        if _texto(c):
+            return str(c).strip()
+    return None
+
+
+def _datas_no_titulo(linhas: list[list]) -> list[pd.Period]:
+    achadas = []
+    for linha in linhas[:10]:
+        for c in linha:
+            if isinstance(c, str):
+                for d, m, a in re.findall(r"(\d{1,2})/(\d{1,2})/(\d{4})", c):
+                    if 1 <= int(m) <= 12:
+                        achadas.append(pd.Period(year=int(a), month=int(m), freq="M"))
+    return achadas
 
 
 def extrair(tab: Tabela, layout: Layout, competencia_unica: pd.Period | None = None) -> pd.DataFrame:
     """Tabela longa: rotulo, competencia, valor (sinal original)."""
     reg = []
     if layout.tipo == "colunas":
+        primeira = min(layout.meses_por_coluna)
         for linha in tab.linhas[layout.linha_cabecalho + 1:]:
-            rotulo = linha[layout.coluna_rotulo] if layout.coluna_rotulo is not None and layout.coluna_rotulo < len(linha) else None
+            if layout.coluna_rotulo is not None and layout.coluna_rotulo < len(linha) and _texto(linha[layout.coluna_rotulo]):
+                rotulo = linha[layout.coluna_rotulo]
+            else:
+                rotulo = _rotulo(linha, primeira) if primeira > 0 else None
             if not _texto(rotulo):
                 continue
             for j, per in layout.meses_por_coluna.items():
@@ -310,10 +346,10 @@ def extrair(tab: Tabela, layout: Layout, competencia_unica: pd.Period | None = N
             return pd.DataFrame(columns=["rotulo", "competencia", "valor"])
         k = layout.colunas_valor[0]
         for linha in tab.linhas:
-            rotulo = linha[layout.coluna_rotulo] if layout.coluna_rotulo < len(linha) else None
+            rotulo = _rotulo(linha, k)
             v = _valor(linha[k]) if k < len(linha) else None
-            if _texto(rotulo) and v is not None:
-                reg.append((str(rotulo).strip(), competencia_unica, v))
+            if rotulo and v is not None:
+                reg.append((rotulo, competencia_unica, v))
     return pd.DataFrame(reg, columns=["rotulo", "competencia", "valor"])
 
 

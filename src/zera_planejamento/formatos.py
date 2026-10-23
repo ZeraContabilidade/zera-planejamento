@@ -17,6 +17,7 @@ def _nan(v) -> bool:
 def brl(v, casas: int = 2) -> str:
     if _nan(v):
         return "–"
+    v = round(v, casas) or 0.0         # -0,001 vira "R$ 0,00", não "-R$ 0,00"
     s = f"{abs(v):,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".")
     return f"-R$ {s}" if v < 0 else f"R$ {s}"
 

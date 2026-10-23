@@ -141,3 +141,33 @@ def test_tela_outros_documentos_do_upload_a_previa(tmp_path, monkeypatch, client
     from zera_planejamento.cliente import Cliente
     salvo = Cliente.carregar(cliente.pasta() / "cliente.json")
     assert salvo.mapa_rotulos["total"] == "ignorar"          # escolhas lembradas para o próximo documento
+
+
+def test_dre_com_rotulos_em_niveis_e_colunas_saldo_soma_total(tmp_path):
+    # layout típico de DRE/balancete: rótulo muda de coluna conforme o nível; colunas Saldo | Soma | Total;
+    # título com a data → competência sugerida e aviso de acumulado ("exercício")
+    wb = openpyxl.Workbook()
+    for linha in (["Empresa:", None, "X LTDA", None, None, None, "Folha:", 1],
+                  ["DEMONSTRAÇÃO DO RESULTADO DO EXERCÍCIO EM 30/09/2026"],
+                  ["Código", "Classificação", "Descrição", None, "Saldo", "Soma", "Total"],
+                  [None, None, "RECEITA BRUTA"],
+                  [411, "3.1.1.02.000001", None, "SERVIÇOS PRESTADOS", 500_000, 500_000, 500_000],
+                  [None, None, "RECEITA LÍQUIDA", None, None, None, 450_000],
+                  [480, "3.1.2.03.000008", None, "(-) SIMPLES NACIONAL", -50_000, -50_000, -50_000],
+                  [None, None, "LUCRO LÍQUIDO", None, None, None, 300_000],
+                  [332, "4.2.2.01.000002", None, "PRÓ-LABORE", -40_000, -40_000, -40_000]):
+        wb.active.append(linha)
+    wb.save(tmp_path / "dre.xlsx")
+    tab = ler_tabelas(tmp_path / "dre.xlsx")[0]
+    lay = detectar_layout(tab)
+    assert lay.tipo == "unico" and lay.colunas_valor == [4]          # coluna Saldo, não Total
+    assert lay.competencia_sugerida == P("2026-09") and lay.talvez_acumulado
+    longo = extrair(tab, lay, lay.competencia_sugerida)
+    assert list(longo["rotulo"]) == ["SERVIÇOS PRESTADOS", "(-) SIMPLES NACIONAL", "PRÓ-LABORE"]   # sem subtotais
+
+
+def test_linhas_de_tamanhos_diferentes_nao_quebram(tmp_path):
+    (tmp_path / "x.csv").write_text("Relatório\nData;Valor;Obs\n01/2026;10,00\n02/2026;20,00;ok\n", encoding="utf-8")
+    tab = ler_tabelas(tmp_path / "x.csv")[0]
+    lay = detectar_layout(tab)
+    assert montar_parcial(extrair(tab, lay), {"Valor": "despesas"})["despesas"].sum() == 30
