@@ -4,12 +4,12 @@ import io
 import pandas as pd
 import streamlit as st
 
+from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import base_do, exigir_cliente
 from zera_planejamento.base import COLUNAS, BaseMensal
 
 c = exigir_cliente()
-st.title("Base mensal")
-st.caption("Uma coluna por mês. Vazio = não informado. Valores digitados aqui ficam com origem 'manual'.")
+v.cabecalho("Base mensal", f"Cliente · {c.nome}", "Uma coluna por mês. Vazio = não informado. Valores digitados aqui ficam com origem 'manual'.")
 base = base_do(c)
 
 with st.expander("Incluir meses", icon=":material/add:"):

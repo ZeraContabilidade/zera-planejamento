@@ -7,12 +7,17 @@ import streamlit as st
 
 from zera_planejamento import __version__
 from zera_planejamento.app.estado import cliente_atual, clientes, pasta_dados
+from zera_planejamento.app.visual import aplicar_identidade
 
 st.set_page_config(page_title="Zera Planejamento Tributário", page_icon=":material/account_balance:", layout="wide")
+aplicar_identidade()
 
 paginas = {
+    "Visão geral": [
+        st.Page("paginas/dashboard.py", title="Dashboard", icon=":material/dashboard:", default=True),
+    ],
     "Cliente": [
-        st.Page("paginas/cadastro.py", title="Cadastro", icon=":material/badge:", default=True),
+        st.Page("paginas/cadastro.py", title="Cadastro", icon=":material/badge:"),
         st.Page("paginas/importar.py", title="Importar Domínio", icon=":material/upload_file:"),
         st.Page("paginas/base.py", title="Base mensal", icon=":material/table_view:"),
     ],
@@ -31,7 +36,6 @@ paginas = {
 }
 
 with st.sidebar:
-    st.markdown("### Zera Contabilidade\nPlanejamento tributário")
     lista = clientes()
     opcoes = {c.id: f"{c.nome} — {c.cnpj}" if c.cnpj else c.nome for c in lista}
     atual = cliente_atual()

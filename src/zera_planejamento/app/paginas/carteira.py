@@ -4,13 +4,12 @@ import io
 import pandas as pd
 import streamlit as st
 
+from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import clientes, tabela_brl
 from zera_planejamento.carteira import analisar_carteira
 from zera_planejamento.formatos import brl
 
-st.title("Painel da carteira")
-st.caption("Roda o planejamento de todos os clientes (cenário Neutro) e lista quem deveria mudar de regime. "
-           "A opção é irretratável no ano: use em novembro e dezembro.")
+v.cabecalho("Painel da carteira", "Escritório · todos os clientes", "Quem deveria mudar de regime (cenário Neutro). A opção é irretratável no ano: use em novembro e dezembro.")
 lista = clientes()
 st.write(f"{len(lista)} cliente(s) cadastrado(s).")
 

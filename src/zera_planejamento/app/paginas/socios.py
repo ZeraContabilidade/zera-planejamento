@@ -3,6 +3,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
+from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import base_do, exigir_cliente, md, planejamento_do, tabela_brl
 from zera_planejamento.calculo import ROTULO
 from zera_planejamento.cliente import Socio
@@ -12,8 +13,7 @@ from zera_planejamento.socios import otimizar_pro_labore
 
 c = exigir_cliente()
 base = base_do(c)
-st.title("Sócios e pró-labore")
-st.caption("Retirada dos sócios somada aos tributos da empresa (Lei 15.270/2025) e o pró-labore de menor custo total.")
+v.cabecalho("Sócios e pró-labore", f"Análise · {c.nome}", "Retirada dos sócios somada aos tributos da empresa (Lei 15.270/2025) e o pró-labore de menor custo total.")
 
 # ---------------- cadastro ----------------
 st.subheader("Sócios")

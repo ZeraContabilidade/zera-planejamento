@@ -44,16 +44,25 @@ def assinatura(cliente: Cliente, base: BaseMensal) -> str:
     return hashlib.sha1(texto.encode()).hexdigest()
 
 
-def planejamento_do(cliente: Cliente, base: BaseMensal):
-    """Calcula uma vez por combinação cliente+base (o break-even leva alguns segundos)."""
+@st.cache_resource(max_entries=30, show_spinner=False)
+def _planejamento(chave: str, _cliente: Cliente, _base: BaseMensal):
+    """Planejamento sem o break-even, compartilhado entre telas e sessões (chave = cadastro + base)."""
     from zera_planejamento.planejamento import gerar_planejamento
+    return gerar_planejamento(_cliente, _base, com_equilibrio=False)
+
+
+def planejamento_do(cliente: Cliente, base: BaseMensal, com_equilibrio: bool = False):
+    """Calcula uma vez por combinação cliente+base. O break-even (o passo mais lento) só é calculado
+    quando pedido (tela Planejamento e relatórios) e fica guardado no mesmo objeto."""
+    from zera_planejamento.equilibrio import curva_margem, pontos_equilibrio
     chave = assinatura(cliente, base)
-    cache = st.session_state.setdefault("_planejamentos", {})
-    if chave not in cache:
-        with st.spinner("Calculando os regimes, os cenários e os pontos de equilíbrio..."):
-            cache.clear()
-            cache[chave] = gerar_planejamento(cliente, base)
-    return cache[chave]
+    with st.spinner("Calculando os regimes e os cenários..."):
+        pl = _planejamento(chave, cliente, base)
+    if com_equilibrio and (pl.equilibrio is None or pl.equilibrio.empty):
+        with st.spinner("Calculando os pontos de equilíbrio..."):
+            neutro = pl.cenarios["Neutro"]
+            pl.equilibrio, pl.curva = pontos_equilibrio(neutro, cliente), curva_margem(neutro, cliente)
+    return pl
 
 
 def md(texto: str) -> str:

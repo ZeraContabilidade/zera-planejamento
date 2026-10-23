@@ -2,12 +2,13 @@
 import pandas as pd
 import streamlit as st
 
+from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import exigir_cliente
 from zera_planejamento.dominio import DESTINOS, PADRAO, DePara
 from zera_planejamento.dominio.depara import TIPOS
 
 c = exigir_cliente()
-st.title("De-Para Domínio → base mensal")
+v.cabecalho("De-Para Domínio → base mensal", f"Ajustes · {c.nome}", "Regras próprias do cliente, aplicadas antes das regras padrão.")
 st.markdown(
     "Regras **deste cliente**, aplicadas antes das padrão. Exemplos: uniformes e EPI de empresa de manutenção "
     "(`CFOP_ENTRADA` `2556` → insumos, Lei 10.833/03, art. 3º, X); uma conta da DRE indedutível "

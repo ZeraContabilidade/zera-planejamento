@@ -7,6 +7,7 @@ Planejamento tributário mensal com projeção semestral para os clientes da **Z
 - **Projeção:** próximos 6 meses em três cenários.
 - **Sócios:** carga sócio + empresa com a Lei 15.270/2025 (lucros acima de R$ 50 mil/mês e IR mínimo) e pró-labore ótimo / Fator R.
 - **Escritório:** painel da carteira (quem deveria mudar de regime antes de janeiro) e prazos de decisão.
+- **Dashboard:** recomendação, indicadores e gráficos interativos por cenário, com a identidade visual da Zera.
 - **Saída:** regime de menor carga, pontos de equilíbrio e alertas, com relatórios em Excel e PDF no padrão Zera.
 
 > Resultado é **rascunho técnico**: o contador revisa antes de levar ao cliente.
@@ -23,7 +24,8 @@ Planejamento tributário mensal com projeção semestral para os clientes da **Z
 2. **Cadastro:** crie o cliente e confira ISS, RAT/FAP/Terceiros e o anexo dos serviços.
 3. **Importar Domínio:** envie os relatórios (o .xls do Domínio, sem converter), leia os alertas e clique em **Gravar**.
 4. **Base mensal:** complete o que não vem do Domínio (aluguel, histórico anterior, ajustes do LALUR).
-5. **Planejamento:** veja o regime de menor carga, os prazos, os cenários, o equilíbrio e a transição.
+5. **Dashboard:** veja a recomendação, os indicadores e os gráficos; troque o cenário e o período nos filtros.
+   Para o detalhe (equilíbrio, tabelas), abra **Planejamento**.
 6. **Sócios e pró-labore:** cadastre os sócios, veja a carga sócio + empresa e calcule o pró-labore ótimo.
 7. **Relatórios:** gere o Excel e o PDF.
 8. **Painel da carteira** (novembro/dezembro): rode todos os clientes e veja quem deveria mudar de regime.

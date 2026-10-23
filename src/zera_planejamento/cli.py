@@ -44,11 +44,10 @@ def main(argv=None) -> int:
         if not cred.exists():   # evita a pergunta de e-mail do Streamlit na primeira execução
             cred.parent.mkdir(parents=True, exist_ok=True)
             cred.write_text('[general]\nemail = ""\n', encoding="utf-8")
-        main_py = Path(__file__).parent / "app" / "main.py"
-        return subprocess.call([sys.executable, "-m", "streamlit", "run", str(main_py), "--server.port", str(a.porta),
-                                "--browser.gatherUsageStats", "false", "--theme.base", "light",
-                                "--theme.primaryColor", "#A8843F", "--theme.textColor", "#1A1A1A",
-                                "--client.toolbarMode", "minimal"])
+        pasta_app = Path(__file__).parent / "app"
+        # roda dentro de app/ para valer o app/.streamlit/config.toml (tema, fontes e logo da Zera)
+        return subprocess.call([sys.executable, "-m", "streamlit", "run", "main.py", "--server.port", str(a.porta)],
+                               cwd=pasta_app)
     if a.comando == "clientes":
         print(f"Dados em {pasta_dados()}")
         for c in listar_clientes():

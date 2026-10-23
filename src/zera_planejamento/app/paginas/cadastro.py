@@ -1,13 +1,13 @@
 """Cadastro do cliente: premissas que mudam o cálculo."""
 import streamlit as st
 
+from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import cliente_atual
 from zera_planejamento.cliente import Cliente, Projecao
 
 novo = st.session_state.pop("novo_cliente", False)
 c = None if novo else cliente_atual()
-st.title("Novo cliente" if c is None else c.nome)
-st.caption("Premissas do cliente. Tudo aqui muda o cálculo; confira antes de gerar o planejamento.")
+v.cabecalho("Novo cliente" if c is None else c.nome, "Cadastro do cliente", "Premissas do cliente. Tudo aqui muda o cálculo; confira antes de gerar o planejamento.")
 c = c or Cliente(nome="")
 
 with st.form("cadastro"):
