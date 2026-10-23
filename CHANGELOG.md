@@ -1,5 +1,20 @@
 # Histórico de versões
 
+## 0.6.1 — 23/10/2026
+**Validação com os relatórios reais da CS Geartech (jan–set/2026)**
+- Regressão confirmada no centavo depois da otimização do motor: Presumido R$ 284.704,68, Simples R$ 237.945,88,
+  Real R$ 574.294,06. O teste agora aceita o nome do arquivo como o Domínio exporta (`Serviços.xls`, com acento).
+- A importação livre ("Outros documentos") lendo o relatório de Serviços do Domínio chega à mesma receita oficial
+  (R$ 1.702.112,28) — teste local, só roda onde estão as amostras.
+
+**Importação livre — correções achadas com os arquivos reais**
+- Linhas com tamanhos diferentes travavam a detecção (erro de índice).
+- DRE/balancete: o rótulo passa a ser o primeiro texto à esquerda dos valores (as contas mudam de coluna conforme o
+  nível) e a coluna de valor é a de saldo analítico, mais à esquerda, para não somar subtotais.
+- Nome das colunas pelo título mais próximo dos dados; competência sugerida pela data do título e aviso quando o
+  documento é acumulado no exercício.
+- "-R$ 0,00" em diferenças de frações de centavo passa a aparecer como "R$ 0,00".
+
 ## 0.6.0 — 23/10/2026
 **Importação de qualquer documento financeiro (Excel, CSV e PDF)** — nova tela "Outros documentos"
 - Lê todas as abas de planilhas (.xlsx, .xlsm, .xls, .ods, .csv) e as tabelas de PDFs com texto (com ou sem grade;

@@ -64,8 +64,15 @@ a, b = st.columns(2)
 if layout.tipo == "unico":
     hoje = pd.Period(dt.date.today(), "M")
     opcoes = list(pd.period_range(hoje - 36, hoje, freq="M"))[::-1]
-    competencia_unica = a.selectbox("Competência do documento", opcoes, index=1, format_func=comp,
-                                    help="O documento não traz os meses: informe a que mês os valores se referem.")
+    sugerida = layout.competencia_sugerida
+    indice = opcoes.index(sugerida) if sugerida in opcoes else 1
+    competencia_unica = a.selectbox("Competência do documento", opcoes, index=indice, format_func=comp,
+                                    help="O documento não traz os meses em colunas: informe a que mês os valores se "
+                                         "referem." + (" Sugestão tirada da data no título." if sugerida else ""))
+    if layout.talvez_acumulado:
+        st.warning("O título indica valores **acumulados no exercício** (vários meses somados). Gravar num único mês "
+                   "distorce a análise mês a mês: prefira a DRE mês a mês ou, se for relatório do Domínio, use "
+                   "**Importar Domínio**, que separa os meses.", icon=":material/warning:")
 acumulado = b.checkbox("Valores acumulados no ano", value=False,
                        help="Marque se cada mês traz o acumulado desde janeiro (DRE/balancete acumulados): o sistema "
                             "calcula o valor de cada mês pela diferença.")

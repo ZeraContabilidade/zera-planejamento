@@ -19,7 +19,7 @@ from zera_planejamento.dominio import importar_relatorios
 
 PASTA = Path(__file__).parents[1] / "amostras" / "cs_geartech"
 pytestmark = [pytest.mark.amostras,
-              pytest.mark.skipif(not (PASTA / "Servicos.xls").exists(), reason="amostras/cs_geartech ausente")]
+              pytest.mark.skipif(not any(PASTA.glob("Servi*.xls")), reason="amostras/cs_geartech ausente")]
 
 
 @pytest.fixture(scope="module")
@@ -56,3 +56,12 @@ def test_regimes(caso):
     assert round(r.at["presumido", "tributos"], 2) == 284_704.68
     assert round(r.at["simples", "tributos"], 2) == 237_945.88
     assert round(r.at["real", "tributos"], 2) == 574_294.06
+
+
+def test_importacao_livre_bate_com_a_oficial():
+    # a tela "Outros documentos" lendo o relatório de Serviços do Domínio chega à mesma receita da importação oficial
+    from zera_planejamento.dominio.generico import detectar_layout, extrair, ler_tabelas, montar_parcial
+    servicos = next(PASTA.glob("Servi*.xls"))
+    tab = ler_tabelas(servicos)[0]
+    parcial = montar_parcial(extrair(tab, detectar_layout(tab)), {"Valor Contábil": "rec_anexo_iii"})
+    assert round(parcial["rec_anexo_iii"].sum(), 2) == 1_702_112.28
