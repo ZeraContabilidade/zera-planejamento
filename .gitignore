@@ -1,0 +1,26 @@
+# Dados de clientes NUNCA vão para o repositório
+amostras/*
+!amostras/LEIA-ME.md
+dados/
+saidas/
+*.xls
+*.xlsx
+!tests/fixtures/*.xlsx
+*.pdf
+*.docx
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+
+# Sistema
+.DS_Store
+Thumbs.db
+~$*
+.streamlit/secrets.toml

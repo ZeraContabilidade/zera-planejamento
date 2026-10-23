@@ -1,0 +1,52 @@
+# Zera Planejamento Tributário
+
+Planejamento tributário mensal com projeção semestral para os clientes da **Zera Contabilidade**.
+
+- **Entrada:** relatórios exportados do **Domínio** (serviços, saídas, entradas, extrato da folha e DRE).
+- **Comparação:** **Simples Nacional**, **Simples híbrido** (IBS/CBS por fora), **Lucro Presumido** e **Lucro Real**, mês a mês, com as regras de 2026 e a transição da Reforma até 2033.
+- **Projeção:** próximos 6 meses em três cenários.
+- **Saída:** regime de menor carga, pontos de equilíbrio e alertas, com relatórios em Excel e PDF no padrão Zera.
+
+> Resultado é **rascunho técnico**: o contador revisa antes de levar ao cliente.
+
+## Instalação (Windows, uma vez por computador)
+
+1. Instale o **Python 3.11 ou superior** em python.org e marque **"Add python.exe to PATH"**.
+2. Copie esta pasta para `C:\ZeraPlanejamento\sistema` (ou clone com o GitHub Desktop).
+3. Dê dois cliques em **`instalar.bat`**.
+
+## Uso
+
+1. Dê dois cliques em **`Iniciar Zera Planejamento.bat`**. O sistema abre no navegador.
+2. **Cadastro:** crie o cliente e confira ISS, RAT/FAP/Terceiros e o anexo dos serviços.
+3. **Importar Domínio:** envie os relatórios (o .xls do Domínio, sem converter), leia os alertas e clique em **Gravar**.
+4. **Base mensal:** complete o que não vem do Domínio (aluguel, histórico anterior, ajustes do LALUR).
+5. **Planejamento:** veja o regime de menor carga, os cenários, o equilíbrio e a transição.
+6. **Relatórios:** gere o Excel e o PDF.
+
+Os dados ficam em `C:\ZeraPlanejamento\dados` (fora do repositório). O manual completo está em [`docs/manual-equipe.md`](docs/manual-equipe.md).
+
+## Relatórios do Domínio
+
+| Relatório | Módulo | Para quê |
+|---|---|---|
+| Acompanhamento de Serviços / de Saídas | Escrita Fiscal | receita por anexo |
+| Acompanhamento de Entradas | Escrita Fiscal | base de crédito por CFOP |
+| Extrato Mensal (Folha Mensal e Complementar) | Folha | salários, pró-labore, FGTS |
+| D.R.E. (de preferência uma por mês) | Contabilidade | custos, despesas e resultado |
+
+Exporte desde **janeiro do ano anterior** para a RBT12 sair exata.
+
+## Desenvolvimento
+
+```bash
+python -m pip install -e .[dev]
+python -m pytest
+zera-planejamento app
+```
+
+- Especificação, decisões e roadmap: [`PROMPT.md`](PROMPT.md).
+- Regras e base legal: [`docs/regras-tributarias.md`](docs/regras-tributarias.md).
+- Convenções para o Claude Code: [`CLAUDE.md`](CLAUDE.md).
+
+Uso interno — Zera Contabilidade.

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zera-planejamento"
+version = "0.1.0"
+description = "Planejamento tributário mensal com projeção semestral (Simples x Presumido x Real), alimentado pelos relatórios do Domínio"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Zera Contabilidade" }]
+license = { text = "Proprietário — uso interno Zera Contabilidade" }
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "openpyxl>=3.1",
+    "matplotlib>=3.7",
+    "reportlab>=4.0",
+    "python-calamine>=0.2",
+    "streamlit>=1.50",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+zera-planejamento = "zera_planejamento.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+zera_planejamento = ["regras/dados/*.csv", "app/*.py", "app/paginas/*.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = ["amostras: precisa dos relatórios reais em amostras/ (pulado se ausentes)"]

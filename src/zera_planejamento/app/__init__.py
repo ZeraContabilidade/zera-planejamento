@@ -1,0 +1,1 @@
+"""App Streamlit da equipe."""
