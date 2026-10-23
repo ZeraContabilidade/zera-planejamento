@@ -80,7 +80,9 @@ def comparar(atual, foto, caminho='', tolerancia=.01):
             for i, (linha, referencia) in enumerate(zip(atual['dados'], foto['dados'])):
                 assert len(linha) == len(referencia), caminho
                 for col, a, b in zip(foto['colunas'], linha, referencia):
-                    tol = 1e-10 if col.startswith(('aliq', 'fator', 'carga', 'participacao')) else .01
+                    # carga_total é monetária; carga e carga_pct são razões.
+                    razao = col.startswith(('aliq', 'fator', 'participacao')) or col in ('carga', 'carga_pct')
+                    tol = 1e-10 if razao else .01
                     comparar(a, b, f'{caminho}/{i}/{col}', tol)
             return
         for k in foto:
@@ -125,3 +127,17 @@ if __name__ == '__main__':
         fotos[nome] = {'calcular': serializar(r), 'planejamento': serializar(p)}
         print(f'{nome}: calcular={motor:.6f}s planejamento={tempo:.6f}s', flush=True)
     ARQUIVO.write_text(json.dumps(fotos, ensure_ascii=False, indent=1), encoding='utf-8')
+
+
+def test_tolerancia_da_foto_distingue_reais_de_aliquotas():
+    # Um centavo é a tolerância monetária; razões mantêm precisão de 1e-10.
+    foto = {'indice': ['real'], 'colunas': ['carga_total', 'carga_pct'],
+            'dados': [[214507.31628440367, .25]]}
+    comparar({'indice': ['real'], 'colunas': foto['colunas'],
+              'dados': [[214507.3162844038, .25]]}, foto)
+    with pytest.raises(AssertionError):
+        comparar({'indice': ['real'], 'colunas': foto['colunas'],
+                  'dados': [[214507.34, .25]]}, foto)
+    with pytest.raises(AssertionError):
+        comparar({'indice': ['real'], 'colunas': foto['colunas'],
+                  'dados': [[214507.31628440367, .25001]]}, foto)
