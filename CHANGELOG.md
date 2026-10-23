@@ -1,5 +1,24 @@
 # Histórico de versões
 
+## 0.5.1 — 23/10/2026
+Integra a revisão crítica e a otimização do motor feitas pelo Codex (PR #6; relatório em `docs/REVISAO-CODEX.md`).
+
+**Correções de regra (Lei 9.250/1995, art. 16-B, incluído pela Lei 15.270/2025)** — conferidas no texto oficial
+- Alíquota efetiva da PJ para o redutor do IRPFM = IRPJ + CSLL ÷ lucro contábil **antes** desses tributos (§ 3º, I e III).
+- Alíquota efetiva do IRPFM = acréscimo do imposto mínimo causado pelos dividendos ÷ dividendos (§ 3º, II), em vez da
+  alíquota nominal da tabela.
+
+**Correções de código**
+- Sazonalidade com mês sem receita não gera mais projeção vazia (NaN).
+- Break-even não confunde regime indisponível com ponto de equilíbrio.
+- Resumo de um período sem meses não recomenda regime; visão dos sócios sem meses não divide por zero.
+
+**Desempenho:** `calcular` de ~1,3 s para ~0,09 s; planejamento completo de ~45 s para ~4 s (conferido nesta máquina),
+sem mudar nenhum imposto da empresa: teste "foto" com 12 casos e tolerância de R$ 0,01.
+
+**Pendências registradas pelo Codex (MÉDIO):** meses sem DRE tratados como custo zero; anualização da visão dos sócios;
+sublimite com histórico parcial do ano anterior; referência do otimizador de pró-labore. Ver `docs/REVISAO-CODEX.md`.
+
 ## 0.5.0 — 23/10/2026
 **Parecer ao cliente (Word + PDF)** — item 5 do roadmap
 - Uma página em linguagem simples, com o timbrado da Zera: recomendação, economia ou carga estimada, prazo de decisão,

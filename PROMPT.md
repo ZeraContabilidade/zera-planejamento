@@ -37,7 +37,7 @@ O sistema faz **planejamento tributário mensal com projeção semestral**:
 
 ---
 
-## 3. Estado atual — v0.5.0
+## 3. Estado atual — v0.5.1
 
 ```
 src/zera_planejamento/
@@ -58,7 +58,7 @@ src/zera_planejamento/
   app/           main.py, visual.py (identidade Zera), .streamlit/config.toml (tema), static/ (logo e fontes)
                  paginas/ (dashboard, cadastro, importar, base, planejamento, socios, relatorios, carteira, depara, configuracoes)
   cli.py         zera-planejamento app | clientes | importar | relatorio | carteira
-tests/           54 testes (inclui test_validacao_casos.py, casos calculados à mão): cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
+tests/           80 testes (inclui casos calculados à mão, foto do motor e revisão do Codex): cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
 ```
 
 **Regressão real (CS Geartech, jan–set/2026, `amostras/` fora do git):**
