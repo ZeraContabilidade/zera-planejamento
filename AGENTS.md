@@ -25,7 +25,7 @@ Sistema Domínio). Faz planejamento tributário mensal com projeção semestral:
 **Natureza do resultado:** rascunho técnico para o contador revisar. Nunca prometer resultado fiscal.
 
 Repositório: `github.com/ZeraContabilidade/zera-planejamento` (privado). Branch principal: `main`.
-Versão atual: **0.5.0**. Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
+Versão atual: **0.5.1**. Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
 
 ---
 
@@ -33,7 +33,7 @@ Versão atual: **0.5.0**. Histórico em `CHANGELOG.md`; especificação viva e r
 
 ```bash
 python -m pip install -e .[dev]      # Python 3.11+ (local usa 3.13; CI roda 3.11 e 3.12, Windows e Ubuntu)
-python -m pytest                     # 54 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
+python -m pytest                     # 80 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
 zera-planejamento app                # abre o Streamlit (roda dentro de src/zera_planejamento/app/ p/ ler o tema)
 zera-planejamento carteira           # painel de todos os clientes no terminal
 ```
@@ -121,6 +121,7 @@ várias vezes) → telas / `relatorio.gerar_relatorios`.
 | 0.3.0 | Identidade visual Zera no app, dashboard interativo, cache do planejamento entre telas. |
 | 0.4.0 | Cadastro pelo CNPJ (dados abertos da RFB), correções no cadastro (sócios apagados, modo novo cliente). |
 | 0.5.0 | Parecer ao cliente (Word + PDF), casos de validação calculados à mão, roteiro do cliente na navegação. |
+| 0.5.1 | Revisão crítica e otimização do motor (Codex, PR #6): redutor do IRPFM conforme o art. 16-B, motor ~10× mais rápido. |
 
 ---
 
@@ -149,7 +150,7 @@ Lista honesta do autor (Claude Code). Confirme, refute ou amplie; não aceite na
 10. `projecao.py`: tendência linear pode explodir/zerar com poucos meses; itens fixos = média dos últimos 3 meses.
 
 **Engenharia**
-11. **Desempenho:** `calculo.calcular` leva ~0,5 s para ~21 meses (overhead de pandas com `PeriodIndex`, `ratear`,
+11. ~~**Desempenho**~~ resolvido na 0.5.1 (planejamento ~4 s). Histórico: `calculo.calcular` levava ~0,5 s para ~21 meses (overhead de pandas com `PeriodIndex`, `ratear`,
     `clip`, `__getitem__` em laço); `equilibrio.pontos_equilibrio` chama o motor dezenas de vezes (~18 s);
     `gerar_planejamento` completo ~30 s.
 12. `app/estado.py`: `st.cache_resource` compartilha o objeto `Planejamento` entre sessões e o muta (anexa o
