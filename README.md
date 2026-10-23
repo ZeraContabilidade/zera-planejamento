@@ -3,6 +3,7 @@
 Planejamento tributário mensal com projeção semestral para os clientes da **Zera Contabilidade**.
 
 - **Entrada:** relatórios exportados do **Domínio** (serviços, saídas, entradas, extrato da folha e DRE).
+- **Outros documentos:** qualquer planilha (Excel, CSV) ou PDF com texto, ligando cada linha a um item da base (o sistema lembra as escolhas por cliente).
 - **Comparação:** **Simples Nacional**, **Simples híbrido** (IBS/CBS por fora), **Lucro Presumido** e **Lucro Real**, mês a mês, com as regras de 2026 e a transição da Reforma até 2033.
 - **Projeção:** próximos 6 meses em três cenários.
 - **Sócios:** carga sócio + empresa com a Lei 15.270/2025 (lucros acima de R$ 50 mil/mês e IR mínimo) e pró-labore ótimo / Fator R.

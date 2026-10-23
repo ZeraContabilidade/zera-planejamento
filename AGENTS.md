@@ -25,7 +25,7 @@ Sistema Domínio). Faz planejamento tributário mensal com projeção semestral:
 **Natureza do resultado:** rascunho técnico para o contador revisar. Nunca prometer resultado fiscal.
 
 Repositório: `github.com/ZeraContabilidade/zera-planejamento` (privado). Branch principal: `main`.
-Versão atual: **0.5.1**. Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
+Versão atual: **0.6.0**. Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
 
 ---
 
@@ -33,7 +33,7 @@ Versão atual: **0.5.1**. Histórico em `CHANGELOG.md`; especificação viva e r
 
 ```bash
 python -m pip install -e .[dev]      # Python 3.11+ (local usa 3.13; CI roda 3.11 e 3.12, Windows e Ubuntu)
-python -m pytest                     # 80 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
+python -m pytest                     # 88 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
 zera-planejamento app                # abre o Streamlit (roda dentro de src/zera_planejamento/app/ p/ ler o tema)
 zera-planejamento carteira           # painel de todos os clientes no terminal
 ```
@@ -52,7 +52,7 @@ zera-planejamento carteira           # painel de todos os clientes no terminal
 | `regras/` | **Única fonte de regras tributárias**, com base legal no docstring. `simples.py` (anexos, RBT12 2026×2027, sublimite, partilha ICMS/ISS), `federais.py` (Presumido, LC 224/2025, Real, encargos), `reforma.py` (CBS/IBS 2026–2033, partilha do Simples), `pessoa_fisica.py` (INSS/IRRF 2026, Lei 15.270: dividendos e IRPFM), `dados/*.csv` (tabelas de partilha). `pendencias_conferir()` lista o que é `[CONFERIR]`. |
 | `base.py` | Base mensal canônica (`COLUNAS`), origem de cada valor, CSV, planilha de digitação. |
 | `cliente.py` | Cadastro (`Cliente`, `Socio`, `Projecao`), pastas, regras efetivas por cliente. |
-| `dominio/` | Leitura dos .xls do Domínio (python-calamine), reconhecimento por título, De-Para, importação com alertas e conferências cruzadas. |
+| `dominio/` | Leitura dos .xls do Domínio (python-calamine), reconhecimento por título, De-Para, importação com alertas e conferências cruzadas; `generico.py` lê qualquer Excel/CSV/PDF (pdfplumber) e aplica o mapa de rótulos do cliente. |
 | `calculo/` | **Motor único** (fonte oficial dos números): `comum.py`, `simples.py`, `presumido.py`, `real.py`, `motor.py` (`calcular`, `Resultado.resumo`, `simular_transicao`). |
 | `projecao.py` | 3 cenários; o cálculo roda na série histórico + projeção. |
 | `equilibrio.py` | Break-even (margem, faturamento, Fator R) e curva de sensibilidade — o passo mais lento. |
@@ -122,6 +122,7 @@ várias vezes) → telas / `relatorio.gerar_relatorios`.
 | 0.4.0 | Cadastro pelo CNPJ (dados abertos da RFB), correções no cadastro (sócios apagados, modo novo cliente). |
 | 0.5.0 | Parecer ao cliente (Word + PDF), casos de validação calculados à mão, roteiro do cliente na navegação. |
 | 0.5.1 | Revisão crítica e otimização do motor (Codex, PR #6): redutor do IRPFM conforme o art. 16-B, motor ~10× mais rápido. |
+| 0.6.0 | Importação de qualquer documento financeiro (Excel, CSV, PDF) com mapa de rótulos por cliente. |
 
 ---
 

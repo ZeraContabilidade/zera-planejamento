@@ -44,6 +44,16 @@ O nome dos arquivos não importa: o sistema reconhece cada relatório pelo títu
 
 Só os meses do período de cada relatório são regravados. Os originais e a conferência ficam guardados na pasta do cliente.
 
+## 4.1 Outros documentos (página **Outros documentos**)
+Para qualquer planilha (Excel, CSV) ou PDF com texto — DRE, balancete, faturamento, folha, extrato do PGDAS-D:
+1. Envie o arquivo. O sistema escolhe a tabela com mais valores (troque se precisar) e mostra onde achou os meses.
+2. Documento de um mês só: informe a competência. Valores acumulados no ano: marque a opção.
+3. Na tabela **"Vai para"**, ligue cada linha a um item da base. Totais, subtotais e lucro ficam em **Ignorar**.
+4. Confira a prévia e clique em **Gravar na base do cliente**. As escolhas ficam salvas: no próximo documento do mesmo
+   cliente, os mesmos rótulos já vêm ligados.
+
+PDF digitalizado (foto/escaneado) não tem texto: peça o arquivo original ou em Excel.
+
 ## 5. Completar a base (página **Base mensal**)
 Itens que não vêm do Domínio:
 

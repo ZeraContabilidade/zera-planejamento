@@ -87,6 +87,7 @@ class Cliente:
     distribuicao_forma: str = "mensal"  # mensal | anual (um pagamento no fim do período)
     cnae: str = ""                      # CNAE principal (consulta à Receita)
     dados_receita: dict = field(default_factory=dict)   # última consulta do CNPJ (dados abertos da RFB)
+    mapa_rotulos: dict[str, str] = field(default_factory=dict)   # rótulo de documento → coluna da base (importação livre)
     observacoes: str = ""
 
     # ---------------- caminhos ----------------

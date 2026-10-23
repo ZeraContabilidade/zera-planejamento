@@ -19,6 +19,7 @@ paginas = {
     "Cliente": [
         st.Page("paginas/cadastro.py", title="Cadastro", icon=":material/badge:"),
         st.Page("paginas/importar.py", title="Importar Domínio", icon=":material/upload_file:"),
+        st.Page("paginas/documentos.py", title="Outros documentos", icon=":material/note_stack_add:"),
         st.Page("paginas/base.py", title="Base mensal", icon=":material/table_view:"),
     ],
     "Análise": [
