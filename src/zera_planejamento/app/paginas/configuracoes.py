@@ -3,6 +3,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from zera_planejamento.app.estado import md
 from zera_planejamento.cliente import pasta_dados
 from zera_planejamento.configuracoes import Configuracoes
 from zera_planejamento.regras import pendencias_conferir
@@ -27,4 +28,4 @@ elif kit:
 st.caption(f"Dados dos clientes em `{pasta_dados()}` (variável de ambiente ZERA_DADOS).")
 st.subheader("Regras a conferir")
 for t in pendencias_conferir():
-    st.markdown(f"- {t}")
+    st.markdown(md(f"- {t}"))

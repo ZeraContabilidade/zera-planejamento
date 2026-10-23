@@ -49,13 +49,15 @@ def test_planejamento_completo(base_exemplo, cliente):
 
 def test_relatorios(tmp_path, base_exemplo, cliente, monkeypatch):
     monkeypatch.setenv("ZERA_DADOS", str(tmp_path / "dados"))
+    from zera_planejamento.cliente import Socio
     from zera_planejamento.relatorio import gerar_relatorios
+    cliente.socios = [Socio("Sócio Um", 0.7), Socio("Sócio Dois", 0.3)]
     pl = gerar_planejamento(cliente, base_exemplo)
     arqs = gerar_relatorios(pl, tmp_path / "rel")
     assert arqs["pdf"].stat().st_size > 50_000
     wb = openpyxl.load_workbook(arqs["excel"])
     assert {"Resumo", "Histórico mensal", "Simples Nacional", "Lucro Presumido", "Lucro Real", "Base mensal",
-            "Transição 2026-2033", "Premissas", "Alertas"} <= set(wb.sheetnames)
+            "Transição 2026-2033", "Sócios e empresa", "Prazos", "Premissas", "Alertas"} <= set(wb.sheetnames)
     assert wb["Resumo"]._charts and wb["Histórico mensal"]._charts
 
 
@@ -71,12 +73,15 @@ def test_cli(tmp_path, monkeypatch, relatorios, cliente, capsys):
 def test_app_todas_as_paginas(tmp_path, monkeypatch, base_exemplo, cliente):
     from streamlit.testing.v1 import AppTest
     monkeypatch.setenv("ZERA_DADOS", str(tmp_path / "dados"))
+    from zera_planejamento.cliente import Socio
+    cliente.socios = [Socio("Sócio Um", 1.0)]
     cliente.salvar()
     base_exemplo.salvar(cliente.pasta())
     import zera_planejamento.app as app_pkg
     from pathlib import Path
     main = Path(app_pkg.__file__).parent / "main.py"
-    for pagina in ("cadastro", "importar", "base", "planejamento", "relatorios", "depara", "configuracoes"):
+    for pagina in ("cadastro", "importar", "base", "planejamento", "socios", "relatorios", "carteira", "depara",
+                   "configuracoes"):
         at = AppTest.from_file(str(main), default_timeout=300)
         at.session_state["cliente_id"] = cliente.id
         at.run()

@@ -3,7 +3,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-from zera_planejamento.app.estado import base_do, exigir_cliente, mostrar_alertas, planejamento_do, tabela_brl
+from zera_planejamento.app.estado import base_do, exigir_cliente, md, mostrar_alertas, planejamento_do, tabela_brl
 from zera_planejamento.calculo import ROTULO
 from zera_planejamento.formatos import brl, comp, pct
 from zera_planejamento.relatorio.graficos import COR
@@ -31,6 +31,20 @@ if m is not None:
     k[2].metric("Carga efetiva", pct(m["carga"]))
     k[3].metric("Economia sobre o 2º", brl(m["economia_vs_2o"], 0))
 
+if pl.prazos is not None and not pl.prazos.empty:
+    st.subheader("Próximos prazos de decisão")
+    pz = pl.prazos.copy()
+    pz["data"] = pd.to_datetime(pz["data"]).dt.strftime("%d/%m/%Y")
+    pz = pz[["data", "dias", "acao", "evento", "base_legal"]]
+    pz.columns = ["Data", "Dias", "Ação", "Evento", "Base legal"]
+    st.dataframe(pz, hide_index=True, width="stretch")
+
+if pl.socios is not None and not pl.socios.vazia:
+    ms = pl.socios.resumo[pl.socios.resumo.melhor].iloc[0]
+    st.info(md(f"Somando a retirada dos sócios (Lei 15.270/2025), a menor carga total é no **{ms['rotulo']}**: "
+               f"{brl(ms['carga_total'], 0)} ({pct(ms['carga_pct'])}). Detalhes em *Sócios e pró-labore*."),
+            icon=":material/group:")
+
 st.subheader("Cenários do período projetado")
 r = pl.resumo.copy()
 r["Regime"] = r["rotulo"]
@@ -50,7 +64,7 @@ st.dataframe(tabela_brl(tab, ("Carga",)), hide_index=True, width="stretch")
 st.subheader("Pontos de equilíbrio")
 for e in pl.equilibrio.itertuples():
     f = (lambda v: pct(v, 1)) if e.unidade == "%" else (lambda v: brl(v, 0))
-    st.markdown(f"**{e.comparacao}** — equilíbrio {f(e.equilibrio)} · projetado {f(e.projetado)}  \n{e.leitura}")
+    st.markdown(md(f"**{e.comparacao}** — equilíbrio {f(e.equilibrio)} · projetado {f(e.projetado)}  \n{e.leitura}"))
 if pl.curva is not None and not pl.curva.empty:
     cv = pl.curva.melt("margem", var_name="regime", value_name="tributos").dropna()
     cv["Regime"] = cv["regime"].map(ROTULO)
@@ -89,4 +103,4 @@ if pl.transicao is not None and not pl.transicao.empty:
 mostrar_alertas(pl.alertas.como_df())
 with st.expander("Regras ainda a conferir"):
     for p in pl.pendencias:
-        st.markdown(f"- {p}")
+        st.markdown(md(f"- {p}"))

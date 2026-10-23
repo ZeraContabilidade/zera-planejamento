@@ -24,3 +24,6 @@ dist/
 Thumbs.db
 ~$*
 .streamlit/secrets.toml
+
+# Configuração local do Claude Code
+.claude/

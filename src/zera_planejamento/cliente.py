@@ -49,6 +49,16 @@ class Projecao:
 
 
 @dataclass
+class Socio:
+    """Sócio pessoa física (visão sócio + empresa da Lei 15.270/2025 e otimizador de pró-labore)."""
+    nome: str
+    participacao: float = 1.0                 # fração do lucro distribuído (0–1)
+    pro_labore: float | None = None           # mensal; vazio = pró-labore da base × participação
+    dependentes: int = 0
+    outros_rendimentos: float = 0.0           # renda anual de outras fontes (entra na base do IRPFM)
+
+
+@dataclass
 class Cliente:
     nome: str
     cnpj: str = ""
@@ -72,6 +82,9 @@ class Cliente:
     reforma: dict[str, float] = field(default_factory=dict)           # cbs_referencia, ibs_referencia
     projecao: Projecao = field(default_factory=Projecao)
     depara: list[dict] = field(default_factory=list)                  # regras próprias do cliente
+    socios: list[Socio] = field(default_factory=list)
+    distribuicao_lucro: float = 1.0    # fração do lucro contábil distribuída aos sócios
+    distribuicao_forma: str = "mensal"  # mensal | anual (um pagamento no fim do período)
     observacoes: str = ""
 
     # ---------------- caminhos ----------------
@@ -119,6 +132,10 @@ class Cliente:
         if isinstance(d.get("projecao"), dict):
             d["projecao"] = Projecao(**{k: v for k, v in d["projecao"].items()
                                         if k in {f.name for f in fields(Projecao)}})
+        if d.get("socios"):
+            validos_s = {f.name for f in fields(Socio)}
+            d["socios"] = [s if isinstance(s, Socio) else Socio(**{k: v for k, v in s.items() if k in validos_s})
+                           for s in d["socios"]]
         return cls(**d)
 
     @classmethod

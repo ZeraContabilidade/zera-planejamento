@@ -56,6 +56,11 @@ def planejamento_do(cliente: Cliente, base: BaseMensal):
     return cache[chave]
 
 
+def md(texto: str) -> str:
+    """Escapa o cifrão: no Markdown do Streamlit, "R$ ... R$" vira fórmula matemática."""
+    return str(texto).replace("$", r"\$")
+
+
 def mostrar_alertas(df: pd.DataFrame, titulo: str = "Alertas") -> None:
     if df is None or df.empty:
         st.success("Nenhum alerta.", icon=":material/check_circle:")
@@ -63,7 +68,7 @@ def mostrar_alertas(df: pd.DataFrame, titulo: str = "Alertas") -> None:
     cont = df["nivel"].value_counts()
     st.markdown(f"**{titulo}** — " + " · ".join(f"{n}: {cont.get(n, 0)}" for n in ("CRÍTICO", "ATENÇÃO", "INFO")))
     for a in df.itertuples():
-        msg = f"**{a.origem}** — {a.mensagem}"
+        msg = md(f"**{a.origem}** — {a.mensagem}")
         if a.nivel == "CRÍTICO":
             st.error(msg, icon=ICONE_NIVEL[a.nivel])
         elif a.nivel == "ATENÇÃO":
@@ -83,5 +88,5 @@ def tabela_brl(df: pd.DataFrame, colunas_pct: tuple[str, ...] = ()) -> pd.DataFr
     return out
 
 
-__all__ = ["clientes", "cliente_atual", "exigir_cliente", "base_do", "planejamento_do", "mostrar_alertas",
+__all__ = ["clientes", "cliente_atual", "exigir_cliente", "base_do", "planejamento_do", "mostrar_alertas", "md",
            "tabela_brl", "pasta_dados"]

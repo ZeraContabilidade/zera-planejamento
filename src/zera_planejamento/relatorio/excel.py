@@ -2,7 +2,7 @@
 Relatório em Excel (.xlsx) com gráficos nativos (editáveis no Excel) e memória de cálculo.
 
 Abas: Resumo · Histórico mensal · uma aba por regime · Base mensal · Origem dos dados ·
-Projeções · Transição 2026-2033 · Equilíbrio · Premissas · Alertas.
+Projeções · Transição 2026-2033 · Equilíbrio · Sócios e empresa · Prazos · Premissas · Alertas.
 """
 from __future__ import annotations
 
@@ -232,9 +232,41 @@ def exportar_excel(pl, caminho: Path, graficos_png: dict[str, Path] | None = Non
             we.cell(row=i, column=1).number_format = PCT
         _larguras(we, {get_column_letter(i): 20 for i in range(1, 6)})
 
+    # ---------------- Sócios + empresa (Lei 15.270/2025) ----------------
+    if pl.socios is not None and not pl.socios.vazia:
+        wsoc = wb.create_sheet("Sócios e empresa")
+        r = pl.socios.resumo[["rotulo", "tributos_pj", "lucro_contabil", "aliquota_pj", "dividendos", "irrf_dividendos",
+                              "irpfm", "inss_socios", "irrf_pro_labore", "custo_pf", "carga_total", "carga_pct"]].copy()
+        r["melhor"] = pl.socios.resumo["melhor"].map({True: "MENOR CARGA", False: ""})
+        r.columns = ["Regime", "Tributos da empresa", "Lucro contábil", "Alíquota IRPJ+CSLL", "Lucros distribuídos",
+                     "IRRF 10% (antecipação)", "IRPFM", "INSS dos sócios", "IRRF do pró-labore", "Custo dos sócios",
+                     "Empresa + sócios", "Carga total", "Situação"]
+        prox = _tabela(wsoc, r.set_index("Regime"), 1, {"Alíquota IRPJ+CSLL": PCT, "Carga total": PCT}, indice="Regime")
+        det = pl.socios.detalhe[["rotulo", "socio", "participacao", "pro_labore_mes", "inss", "irrf_pro_labore",
+                                 "dividendos", "dividendos_mes", "irrf_dividendos", "renda_anual", "aliquota_irpfm",
+                                 "redutor", "irpfm", "ajuste_anual"]].copy()
+        det.columns = ["Regime", "Sócio", "Participação", "Pró-labore/mês", "INSS", "IRRF pró-labore", "Lucros",
+                       "Lucros/mês", "IRRF 10%", "Renda anual", "Alíquota IRPFM", "Redutor", "IRPFM", "Ajuste anual"]
+        _tabela(wsoc, det.set_index("Regime"), prox + 1, {"Participação": PCT, "Alíquota IRPFM": PCT}, indice="Regime")
+        linha = prox + len(det) + 3
+        for o in pl.socios.observacoes:
+            _celula(wsoc, linha, 1, o)
+            linha += 1
+        _larguras(wsoc, {get_column_letter(i): 18 for i in range(1, 15)})
+
+    # ---------------- Prazos ----------------
+    if pl.prazos is not None and not pl.prazos.empty:
+        wz = wb.create_sheet("Prazos")
+        pz = pl.prazos.copy()
+        pz["data"] = pd.to_datetime(pz["data"]).dt.strftime("%d/%m/%Y")
+        pz.columns = ["Data", "Dias", "Evento", "Base legal", "Ação"]
+        _tabela(wz, pz.set_index("Data"), 1, {"Dias": "0"}, indice="Data")
+        _larguras(wz, {"A": 12, "B": 8, "C": 80, "D": 50, "E": 14})
+
     # ---------------- Premissas e alertas ----------------
     wpr = wb.create_sheet("Premissas")
-    prem = [(k, str(v)) for k, v in asdict(c).items() if k != "depara"]
+    prem = [(k, str(v)) for k, v in asdict(c).items() if k not in ("depara", "socios")]
+    prem += [("socio", f"{s.nome} — {pct(s.participacao)}") for s in c.socios]
     prem += [("regras_pendentes_conferir", p) for p in pl.pendencias]
     dfp = pd.DataFrame(prem, columns=["Parâmetro", "Valor"]).set_index("Parâmetro")
     _tabela(wpr, dfp, 1, indice="Parâmetro")

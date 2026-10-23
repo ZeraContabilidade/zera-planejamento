@@ -18,7 +18,11 @@ paginas = {
     ],
     "Análise": [
         st.Page("paginas/planejamento.py", title="Planejamento", icon=":material/insights:"),
+        st.Page("paginas/socios.py", title="Sócios e pró-labore", icon=":material/group:"),
         st.Page("paginas/relatorios.py", title="Relatórios", icon=":material/picture_as_pdf:"),
+    ],
+    "Escritório": [
+        st.Page("paginas/carteira.py", title="Painel da carteira", icon=":material/groups:"),
     ],
     "Ajustes": [
         st.Page("paginas/depara.py", title="De-Para", icon=":material/rule:"),
