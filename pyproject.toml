@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zera-planejamento"
-version = "0.5.1"
+version = "0.6.0"
 description = "Planejamento tributário mensal com projeção semestral (Simples x Presumido x Real), alimentado pelos relatórios do Domínio"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,6 +18,7 @@ dependencies = [
     "reportlab>=4.0",
     "python-calamine>=0.2",
     "python-docx>=1.1",
+    "pdfplumber>=0.11",
     "streamlit>=1.50",
 ]
 

@@ -1,5 +1,20 @@
 # Histórico de versões
 
+## 0.6.0 — 23/10/2026
+**Importação de qualquer documento financeiro (Excel, CSV e PDF)** — nova tela "Outros documentos"
+- Lê todas as abas de planilhas (.xlsx, .xlsm, .xls, .ods, .csv) e as tabelas de PDFs com texto (com ou sem grade;
+  sem grade, números e meses são separados do rótulo pela direita). PDF digitalizado (imagem) é recusado com aviso.
+- Encontra os meses sozinho: em colunas (jan/26, 01/2026, 2026-01, datas) ou numa coluna de datas; documento de um
+  período pede a competência. Valores acumulados no ano viram mensais pela diferença.
+- O usuário liga cada rótulo a um item da base (sugestões automáticas: receita, custos, salários, pró-labore, FGTS,
+  devoluções, receitas financeiras; totais e lucro em "ignorar"). As escolhas ficam salvas no cliente
+  (`mapa_rotulos`) e voltam prontas no próximo documento.
+- Prévia do que será gravado, aviso de valores que serão substituídos, original guardado em `importacoes/`.
+- `pdfplumber` como dependência.
+
+**Testes:** 8 novos com documentos sintéticos (Excel acumulado, CSV, PDF texto e grade, PDF sem texto, mapa do cliente,
+tela do envio à gravação). A foto do motor aceita campos novos e vazios no cadastro, sem afrouxar a comparação dos valores.
+
 ## 0.5.1 — 23/10/2026
 Integra a revisão crítica e a otimização do motor feitas pelo Codex (PR #6; relatório em `docs/REVISAO-CODEX.md`).
 

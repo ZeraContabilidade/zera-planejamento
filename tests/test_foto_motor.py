@@ -72,6 +72,12 @@ def serializar(obj):
 
 def comparar(atual, foto, caminho='', tolerancia=.01):
     if isinstance(foto, dict):
+        if caminho.endswith('/cliente'):
+            # Campos de cadastro criados depois da foto (ex.: mapa_rotulos) não entram no cálculo; só são
+            # aceitos se estiverem vazios. Os demais campos e todos os valores continuam comparados.
+            novos = {k: v for k, v in atual.items() if k not in foto}
+            assert all(v in ({}, [], '', None) for v in novos.values()), (caminho, novos)
+            atual = {k: v for k, v in atual.items() if k in foto}
         assert atual.keys() == foto.keys(), caminho
         if set(foto) == {'indice', 'colunas', 'dados'}:
             assert atual['indice'] == foto['indice'], caminho

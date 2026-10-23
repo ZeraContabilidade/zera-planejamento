@@ -37,7 +37,7 @@ O sistema faz **planejamento tributário mensal com projeção semestral**:
 
 ---
 
-## 3. Estado atual — v0.5.1
+## 3. Estado atual — v0.6.0
 
 ```
 src/zera_planejamento/
@@ -49,6 +49,7 @@ src/zera_planejamento/
   cliente.py     cadastro e pastas; configuracoes.py (kit visual, assinatura)
   consulta_cnpj.py  dados do CNPJ (BrasilAPI / CNPJ.ws, dados abertos da RFB) e validação dos dígitos
   dominio/       leitura.py, relatorios.py (Serviços, Saídas, Entradas, Extrato Mensal, DRE), depara.py, importar.py
+                 generico.py (qualquer Excel/CSV/PDF: tabelas, meses, mapa de rótulos por cliente)
   calculo/       comum.py, simples.py (por dentro + híbrido), presumido.py, real.py, motor.py (+ simular_transicao)
   projecao.py    3 cenários; equilibrio.py (break-even e curva); planejamento.py (fluxo completo)
   socios.py      sócio + empresa (Lei 15.270) e otimizador de pró-labore / Fator R
@@ -58,7 +59,7 @@ src/zera_planejamento/
   app/           main.py, visual.py (identidade Zera), .streamlit/config.toml (tema), static/ (logo e fontes)
                  paginas/ (dashboard, cadastro, importar, base, planejamento, socios, relatorios, carteira, depara, configuracoes)
   cli.py         zera-planejamento app | clientes | importar | relatorio | carteira
-tests/           80 testes (inclui casos calculados à mão, foto do motor e revisão do Codex): cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
+tests/           88 testes (inclui casos calculados à mão, foto do motor e revisão do Codex): cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
 ```
 
 **Regressão real (CS Geartech, jan–set/2026, `amostras/` fora do git):**
