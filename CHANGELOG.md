@@ -1,5 +1,18 @@
 # Histórico de versões
 
+## 0.4.0 — 23/10/2026
+**Cadastro pelo CNPJ (dados abertos da Receita Federal)**
+- Botão **Buscar na Receita** no Cadastro: preenche razão social, CNPJ, município, UF e atividade (CNAE).
+- Sugere o regime atual: optante do Simples ou a última forma de tributação declarada (Lucro Real/Presumido).
+- Mostra situação cadastral, opção pelo Simples/MEI, porte, CNAEs secundários e o quadro de sócios. Também oferece
+  cadastrar os sócios pessoa física (participação igual, para ajustar depois).
+- Fontes: BrasilAPI e, de reserva, CNPJ.ws (só o número do CNPJ sai do computador). Valida os dígitos do CNPJ antes.
+- Avisos para empresa não ativa e para MEI.
+
+**Correções**
+- Salvar o Cadastro não apaga mais os sócios cadastrados.
+- O modo "Novo cliente" continua ativo até salvar (antes, qualquer clique voltava para o cliente da barra lateral).
+
 ## 0.3.0 — 23/10/2026
 **Identidade visual da Zera no sistema**
 - Tema do kit "ZERA - IDENTIDADE VISUAL": barra lateral preta com a logo dourada, dourado #C5A15F / #A8843F,

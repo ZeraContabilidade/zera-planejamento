@@ -85,6 +85,8 @@ class Cliente:
     socios: list[Socio] = field(default_factory=list)
     distribuicao_lucro: float = 1.0    # fração do lucro contábil distribuída aos sócios
     distribuicao_forma: str = "mensal"  # mensal | anual (um pagamento no fim do período)
+    cnae: str = ""                      # CNAE principal (consulta à Receita)
+    dados_receita: dict = field(default_factory=dict)   # última consulta do CNPJ (dados abertos da RFB)
     observacoes: str = ""
 
     # ---------------- caminhos ----------------

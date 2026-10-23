@@ -6,6 +6,11 @@
 
 ## 2. Cadastrar o cliente (página **Cadastro**)
 
+**Atalho:** digite o CNPJ em *Buscar dados na Receita Federal* e clique em **Buscar na Receita**. O sistema preenche
+razão social, município, UF, atividade (CNAE) e sugere o regime atual (Simples ou a última tributação declarada).
+Pode também cadastrar os sócios do quadro societário. Confira tudo e clique em **Salvar cadastro**; as alíquotas
+abaixo (ISS, RAT, FAP, Terceiros) continuam sendo do escritório.
+
 | Campo | Onde conferir | Por que importa |
 |---|---|---|
 | Regime atual | Domínio / opção do ano | No Simples, ICMS e ISS do Presumido/Real são estimados pelas alíquotas do cadastro |

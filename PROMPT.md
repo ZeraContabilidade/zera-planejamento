@@ -37,7 +37,7 @@ O sistema faz **planejamento tributário mensal com projeção semestral**:
 
 ---
 
-## 3. Estado atual — v0.3.0
+## 3. Estado atual — v0.4.0
 
 ```
 src/zera_planejamento/
@@ -47,6 +47,7 @@ src/zera_planejamento/
                  dados/simples_partilha_icms_iss.csv (ICMS/ISS no DAS por anexo e faixa — sublimite)
   base.py        base mensal canônica (colunas, origem de cada valor, CSV, planilha de digitação)
   cliente.py     cadastro e pastas; configuracoes.py (kit visual, assinatura)
+  consulta_cnpj.py  dados do CNPJ (BrasilAPI / CNPJ.ws, dados abertos da RFB) e validação dos dígitos
   dominio/       leitura.py, relatorios.py (Serviços, Saídas, Entradas, Extrato Mensal, DRE), depara.py, importar.py
   calculo/       comum.py, simples.py (por dentro + híbrido), presumido.py, real.py, motor.py (+ simular_transicao)
   projecao.py    3 cenários; equilibrio.py (break-even e curva); planejamento.py (fluxo completo)
@@ -57,7 +58,7 @@ src/zera_planejamento/
   app/           main.py, visual.py (identidade Zera), .streamlit/config.toml (tema), static/ (logo e fontes)
                  paginas/ (dashboard, cadastro, importar, base, planejamento, socios, relatorios, carteira, depara, configuracoes)
   cli.py         zera-planejamento app | clientes | importar | relatorio | carteira
-tests/           40 testes: cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
+tests/           45 testes: cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
 ```
 
 **Regressão real (CS Geartech, jan–set/2026, `amostras/` fora do git):**

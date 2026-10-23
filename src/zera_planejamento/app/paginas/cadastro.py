@@ -3,27 +3,73 @@ import streamlit as st
 
 from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import cliente_atual
-from zera_planejamento.cliente import Cliente, Projecao
+from zera_planejamento.cliente import Cliente, Projecao, Socio
+from zera_planejamento.consulta_cnpj import ErroConsultaCNPJ, consultar_cnpj
 
-novo = st.session_state.pop("novo_cliente", False)
+novo = st.session_state.get("novo_cliente", False)     # vale até salvar ou escolher outro cliente na barra lateral
 c = None if novo else cliente_atual()
 v.cabecalho("Novo cliente" if c is None else c.nome, "Cadastro do cliente", "Premissas do cliente. Tudo aqui muda o cálculo; confira antes de gerar o planejamento.")
 c = c or Cliente(nome="")
 
+# ---------------- consulta do CNPJ (dados abertos da Receita Federal) ----------------
+v.rotulo("Buscar dados na Receita Federal")
+a, b = st.columns([3, 1], vertical_alignment="bottom")
+cnpj_busca = a.text_input("CNPJ para consultar", c.cnpj, placeholder="00.000.000/0000-00",
+                          help="Preenche razão social, município, UF, atividade (CNAE), regime e sócios.")
+if b.button("Buscar na Receita", icon=":material/travel_explore:", width="stretch"):
+    try:
+        with st.spinner("Consultando o CNPJ..."):
+            st.session_state["receita"] = (c.id, consultar_cnpj(cnpj_busca))
+    except ErroConsultaCNPJ as erro:
+        st.session_state.pop("receita", None)
+        st.error(str(erro), icon=":material/error:")
+rf = st.session_state.get("receita")
+rf = rf[1] if rf and rf[0] == c.id else None
+if rf is not None:
+    simples = {True: "Optante" + (f" desde {rf.data_opcao_simples}" if rf.data_opcao_simples else ""), False: "Não optante",
+               None: "Não informado"}[rf.simples]
+    st.markdown(f"#### {rf.razao_social}")
+    st.caption(" · ".join(x for x in (rf.cnpj, rf.nome_fantasia, rf.natureza_juridica) if x))
+    v.kpis([{"l": "Situação", "v": rf.situacao.title() or "–", "d": f"Aberta em {rf.abertura}" if rf.abertura else "",
+             "escuro": True},
+            {"l": "Simples Nacional", "v": simples.split(" desde")[0], "d": ("MEI · " if rf.mei else "") + simples},
+            {"l": "Última tributação", "v": (rf.ultima_tributacao.split(" (")[0].title() or "–"),
+             "d": rf.ultima_tributacao[rf.ultima_tributacao.find("("):] if "(" in rf.ultima_tributacao else "declarada à RFB"},
+            {"l": "Município", "v": f"{rf.municipio}/{rf.uf}", "d": rf.porte.title()}])
+    socios_txt = ", ".join(f"{s.nome} ({s.qualificacao})" for s in rf.socios[:8]) or "não informado"
+    if len(rf.socios) > 8:
+        socios_txt += f" e mais {len(rf.socios) - 8}"
+    st.caption(f"**Atividade principal:** {rf.atividade}  \n**Sócios no QSA:** {socios_txt}  \n"
+               f"Fonte: {rf.fonte}, consultado em {rf.consultado_em}. Os campos abaixo foram preenchidos; confira e salve.")
+    if not rf.ativa:
+        st.warning(f"Situação cadastral: {rf.situacao}. Confirme com o cliente antes de planejar.", icon=":material/warning:")
+    if rf.mei:
+        st.info("Empresa optante pelo MEI: o planejamento compara Simples, Presumido e Real, não o SIMEI.",
+                icon=":material/info:")
+    if rf.cnaes_secundarios:
+        with st.expander(f"CNAEs secundários ({len(rf.cnaes_secundarios)})"):
+            st.markdown("\n".join(f"- {x}" for x in rf.cnaes_secundarios))
+
 with st.form("cadastro"):
     st.subheader("Identificação")
     a, b, d = st.columns([3, 2, 1])
-    nome = a.text_input("Razão social", c.nome)
-    cnpj = b.text_input("CNPJ", c.cnpj)
-    uf = d.text_input("UF", c.uf)
+    nome = a.text_input("Razão social", rf.razao_social if rf else c.nome)
+    cnpj = b.text_input("CNPJ", rf.cnpj if rf else c.cnpj)
+    uf = d.text_input("UF", rf.uf if rf else c.uf)
     a, b = st.columns(2)
-    municipio = a.text_input("Município", c.municipio)
-    atividade = b.text_input("Atividade", c.atividade)
+    municipio = a.text_input("Município", rf.municipio if rf else c.municipio)
+    atividade = b.text_input("Atividade", rf.atividade if rf else c.atividade)
+    socios_qsa = [s for s in rf.socios if s.pessoa_fisica] if rf else []
+    importar_socios = False
+    if socios_qsa and not c.socios:
+        importar_socios = st.checkbox(f"Cadastrar os {len(socios_qsa)} sócio(s) pessoa física do QSA (participação igual; "
+                                      "ajuste depois em Sócios e pró-labore)", value=len(socios_qsa) <= 5)
 
     st.subheader("Enquadramento")
     a, b, d = st.columns(3)
     regimes = ["simples", "presumido", "real"]
-    regime = a.selectbox("Regime atual", regimes, index=regimes.index(c.regime_atual),
+    sugerido = rf.regime_sugerido() if rf else None
+    regime = a.selectbox("Regime atual", regimes, index=regimes.index(sugerido or c.regime_atual),
                          help="No Simples, ICMS/ISS do Presumido/Real são estimados pelas alíquotas abaixo.")
     anexos = ["III", "IV", "V", "fator_r"]
     anexo = b.selectbox("Anexo das notas de serviço", anexos, index=anexos.index(c.anexo_servico),
@@ -80,10 +126,16 @@ if salvar:
                      presuncao=c.presuncao, reforma={"cbs_referencia": cbs, "ibs_referencia": ibs},
                      projecao=Projecao(meses=int(meses), janela=int(janela), metodo=metodo, otimista=otim, pessimista=pess,
                                        sazonalidade=p.sazonalidade),
-                     depara=c.depara, observacoes=obs)
+                     depara=c.depara, observacoes=obs, socios=c.socios, distribuicao_lucro=c.distribuicao_lucro,
+                     distribuicao_forma=c.distribuicao_forma, cnae=rf.cnae_principal if rf else c.cnae,
+                     dados_receita=rf.como_dict() if rf else c.dados_receita)
+    if importar_socios:
+        novo_c.socios = [Socio(nome=s.nome.title(), participacao=1 / len(socios_qsa)) for s in socios_qsa]
     if antigo_id and antigo_id != novo_c.id:
         st.warning("Nome/CNPJ mudaram: o cadastro foi salvo numa pasta nova. Os dados antigos continuam na pasta anterior.")
     novo_c.salvar()
     st.session_state["cliente_id"] = novo_c.id
+    st.session_state.pop("receita", None)
+    st.session_state.pop("novo_cliente", None)
     st.success("Cadastro salvo.", icon=":material/check:")
     st.rerun()
