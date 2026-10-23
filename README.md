@@ -21,7 +21,7 @@ Planejamento tributário mensal com projeção semestral para os clientes da **Z
 ## Uso
 
 1. Dê dois cliques em **`Iniciar Zera Planejamento.bat`**. O sistema abre no navegador.
-2. **Cadastro:** crie o cliente e confira ISS, RAT/FAP/Terceiros e o anexo dos serviços.
+2. **Cadastro:** crie o cliente — digite o CNPJ e clique em **Buscar na Receita** para preencher os dados — e confira ISS, RAT/FAP/Terceiros e o anexo dos serviços.
 3. **Importar Domínio:** envie os relatórios (o .xls do Domínio, sem converter), leia os alertas e clique em **Gravar**.
 4. **Base mensal:** complete o que não vem do Domínio (aluguel, histórico anterior, ajustes do LALUR).
 5. **Dashboard:** veja a recomendação, os indicadores e os gráficos; troque o cenário e o período nos filtros.

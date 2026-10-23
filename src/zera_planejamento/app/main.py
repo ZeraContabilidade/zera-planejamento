@@ -42,7 +42,8 @@ with st.sidebar:
     if opcoes:
         ids = list(opcoes)
         escolhido = st.selectbox("Cliente", ids, format_func=opcoes.get,
-                                 index=ids.index(atual.id) if atual else 0)
+                                 index=ids.index(atual.id) if atual else 0,
+                                 on_change=lambda: st.session_state.pop("novo_cliente", None))
         st.session_state["cliente_id"] = escolhido
     else:
         st.caption("Nenhum cliente cadastrado ainda.")
