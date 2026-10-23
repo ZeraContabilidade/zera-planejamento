@@ -1,5 +1,23 @@
 # Histórico de versões
 
+## 0.3.0 — 23/10/2026
+**Identidade visual da Zera no sistema**
+- Tema do kit "ZERA - IDENTIDADE VISUAL": barra lateral preta com a logo dourada, dourado #C5A15F / #A8843F,
+  títulos em Cormorant Garamond e texto em Inter (fontes e logo dentro do sistema, funcionam sem o Drive).
+- Cabeçalho de todas as telas no padrão do timbrado (rótulo dourado, título em Cormorant, diagonal dourada com a logo).
+
+**Dashboard do cliente** (nova tela inicial)
+- Faixa de recomendação (mudar ou manter, economia por ano e prazo de decisão).
+- Cartões: menor carga, economia por ano, carga efetiva, receita, Fator R ou vantagem sobre o 2º, próximo prazo.
+- Filtros de cenário (Neutro, Otimista, Pessimista), período (projeção ou últimos 12 meses) e regimes exibidos.
+- Gráficos interativos: ranking dos regimes, composição por tributo (clique na legenda destaca), evolução mês a mês
+  com histórico e projeção, receita × carga efetiva, Fator R com a linha de 28%, transição 2026–2033.
+- Prazos de decisão e alertas no mesmo painel.
+
+**Velocidade**
+- O planejamento fica guardado entre telas e sessões; o break-even só é calculado na tela Planejamento e nos relatórios
+  (o dashboard abre em cerca de metade do tempo). Janela da RBT12 calculada com arrays.
+
 ## 0.2.0 — 23/10/2026
 Melhorias do roadmap que não dependem de novos layouts do Domínio.
 

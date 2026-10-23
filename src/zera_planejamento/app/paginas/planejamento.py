@@ -3,6 +3,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
+from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import base_do, exigir_cliente, md, mostrar_alertas, planejamento_do, tabela_brl
 from zera_planejamento.calculo import ROTULO
 from zera_planejamento.formatos import brl, comp, pct
@@ -10,15 +11,14 @@ from zera_planejamento.relatorio.graficos import COR
 
 c = exigir_cliente()
 base = base_do(c)
-st.title("Planejamento tributário")
 try:
-    pl = planejamento_do(c, base)
+    pl = planejamento_do(c, base, com_equilibrio=True)
 except ValueError as erro:
     st.info(str(erro))
     st.stop()
 
 mh, mp = pl.meses_historico, pl.meses_projetados
-st.caption(f"Histórico {comp(mh[0])} a {comp(mh[-1])} · projeção {comp(mp[0])} a {comp(mp[-1])} · rascunho para revisão")
+v.cabecalho("Planejamento tributário", f"Análise · {c.nome}", f"Histórico {comp(mh[0])} a {comp(mh[-1])} · projeção {comp(mp[0])} a {comp(mp[-1])} · rascunho para revisão")
 escala = alt.Scale(domain=[ROTULO[r] for r in COR], range=list(COR.values()))
 EIXO_RS = alt.Axis(labelExpr="'R$ ' + format(datum.value / 1000, ',.0f') + ' mil'")
 CURTO = {"simples": "Simples", "simples_hibrido": "Simples híbrido", "presumido": "Presumido", "real": "Real"}

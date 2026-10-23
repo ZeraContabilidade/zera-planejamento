@@ -32,10 +32,11 @@ ANEXO_COLUNA = {"rec_anexo_i": "I", "rec_anexo_ii": "II", "rec_anexo_iii": "III"
                 "rec_anexo_v": "V"}
 
 
-def _janela(serie: pd.Series, informado: pd.Series, pa: pd.Period) -> tuple[float, int]:
+def _janela(valores: np.ndarray, ordinais: np.ndarray, informado: np.ndarray, pa: pd.Period) -> tuple[float, int]:
+    """Soma dos meses informados dentro da janela da RBT12/FS12 (arrays: o laço roda uma vez por mês)."""
     ini, fim = janela_rbt12(pa)
-    sel = (serie.index >= ini) & (serie.index <= fim) & informado.values
-    return float(serie[sel].sum()), int(sel.sum())
+    sel = (ordinais >= ini.ordinal) & (ordinais <= fim.ordinal) & informado
+    return float(valores[sel].sum()), int(sel.sum())
 
 
 def _parcela_icms_iss(pa: pd.Period, anexo: str, faixa: int, valor: float, aliq: float, rr_ativa: bool) -> float:
@@ -83,12 +84,14 @@ def calcular_simples(ctx: Contexto) -> pd.DataFrame:
     icms_rec, _ = nao_cumulativo(locais["icms_debito"], locais["icms_credito"])
     cpp_iv = encargos_patronais(ctx, terceiros=False)
     impedido, sub_proporcional = _impedimento_sublimite(rb, tem_receita)
+    ordinais, informado = d.index.asi8, tem_receita.to_numpy()
+    rb_v, folha_v = rb.to_numpy(), folha.to_numpy()
 
     linhas, proporcional, sem_partilha = [], False, set()
     acum, ano_corrente, excluida_desde = 0.0, None, None
     for pa in d.index:
-        soma_rb, n = _janela(rb, tem_receita, pa)
-        soma_fs, _ = _janela(folha, tem_receita, pa)
+        soma_rb, n = _janela(rb_v, ordinais, informado, pa)
+        soma_fs, _ = _janela(folha_v, ordinais, informado, pa)
         if n == 12:
             rbt12, fs12 = soma_rb, soma_fs
         elif n > 0:

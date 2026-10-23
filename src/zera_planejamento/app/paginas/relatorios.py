@@ -1,12 +1,13 @@
 """Geração e download dos relatórios (Excel e PDF)."""
 import streamlit as st
 
+from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import base_do, exigir_cliente, planejamento_do
 from zera_planejamento.configuracoes import Configuracoes
 from zera_planejamento.relatorio import gerar_relatorios
 
 c = exigir_cliente()
-st.title("Relatórios")
+v.cabecalho("Relatórios", f"Análise · {c.nome}", "Excel auditável e PDF técnico com o timbrado da Zera.")
 cfg = Configuracoes.carregar()
 if cfg.kit is None:
     st.warning("Kit de identidade visual não configurado: o PDF sai sem o timbrado da Zera. Ajuste em Configurações.",
@@ -14,7 +15,7 @@ if cfg.kit is None:
 
 if st.button("Gerar Excel e PDF", type="primary", icon=":material/description:"):
     try:
-        pl = planejamento_do(c, base_do(c))
+        pl = planejamento_do(c, base_do(c), com_equilibrio=True)
     except ValueError as erro:
         st.info(str(erro))
         st.stop()

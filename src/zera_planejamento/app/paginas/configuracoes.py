@@ -3,12 +3,13 @@ from pathlib import Path
 
 import streamlit as st
 
+from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import md
 from zera_planejamento.cliente import pasta_dados
 from zera_planejamento.configuracoes import Configuracoes
 from zera_planejamento.regras import pendencias_conferir
 
-st.title("Configurações")
+v.cabecalho("Configurações", "Escritório", "Identidade visual, assinatura e regras a conferir.")
 cfg = Configuracoes.carregar()
 with st.form("cfg"):
     kit = st.text_input("Pasta do kit de identidade visual (ZERA - IDENTIDADE VISUAL)", cfg.kit_identidade,

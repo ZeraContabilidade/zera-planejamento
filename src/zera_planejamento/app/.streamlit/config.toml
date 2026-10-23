@@ -1,0 +1,52 @@
+# Identidade visual Zera (kit "ZERA - IDENTIDADE VISUAL"): preto #111111, dourado #C5A15F / #A8843F,
+# texto #1A1A1A, cinza #5F5F5F; títulos em Cormorant Garamond e texto em Inter.
+# O comando "zera-planejamento app" roda o Streamlit nesta pasta para este arquivo valer.
+
+[server]
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+
+[theme]
+base = "light"
+primaryColor = "#A8843F"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F7F3EA"
+textColor = "#1A1A1A"
+linkColor = "#A8843F"
+borderColor = "#E8E1D3"
+font = "Inter"
+headingFont = "Cormorant Garamond"
+baseRadius = "0.4rem"
+showWidgetBorder = true
+
+[[theme.fontFaces]]
+family = "Inter"
+url = "app/static/fonts/Inter-Regular.ttf"
+weight = 400
+
+[[theme.fontFaces]]
+family = "Inter"
+url = "app/static/fonts/Inter-Bold.ttf"
+weight = 700
+
+[[theme.fontFaces]]
+family = "Cormorant Garamond"
+url = "app/static/fonts/CormorantGaramond-Regular.ttf"
+weight = 400
+
+[[theme.fontFaces]]
+family = "Cormorant Garamond"
+url = "app/static/fonts/CormorantGaramond-Bold.ttf"
+weight = 700
+
+[theme.sidebar]
+backgroundColor = "#111111"
+secondaryBackgroundColor = "#1E1E1E"
+textColor = "#EDE6D6"
+primaryColor = "#C5A15F"
+borderColor = "#2E2E2E"

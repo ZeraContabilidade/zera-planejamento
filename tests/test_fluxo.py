@@ -80,10 +80,31 @@ def test_app_todas_as_paginas(tmp_path, monkeypatch, base_exemplo, cliente):
     import zera_planejamento.app as app_pkg
     from pathlib import Path
     main = Path(app_pkg.__file__).parent / "main.py"
-    for pagina in ("cadastro", "importar", "base", "planejamento", "socios", "relatorios", "carteira", "depara",
+    for pagina in ("dashboard", "cadastro", "importar", "base", "planejamento", "socios", "relatorios", "carteira", "depara",
                    "configuracoes"):
         at = AppTest.from_file(str(main), default_timeout=300)
         at.session_state["cliente_id"] = cliente.id
         at.run()
         at.switch_page(f"paginas/{pagina}.py").run()
         assert not at.exception, f"{pagina}: {[e.message for e in at.exception]}"
+
+
+def test_painel_do_dashboard(base_exemplo, cliente):
+    from zera_planejamento.painel import montar_painel
+    pl = gerar_planejamento(cliente, base_exemplo)
+    p = montar_painel(pl, "Otimista", "projecao")
+    ind = p.indicadores
+    # o recomendado é o 1º do ranking e bate com o resumo do cenário Otimista
+    melhor = pl.melhor("Otimista")
+    assert ind["recomendado"] == melhor["regime"] == p.ranking.iloc[0]["regime"]
+    assert math.isclose(ind["tributos_recomendado"], melhor["tributos"])
+    # economia anual = (regime atual − menor carga) × 12 ÷ meses projetados
+    atual = p.ranking.set_index("regime").loc[cliente.regime_atual, "tributos"]
+    assert math.isclose(ind["economia_ano"], (atual - melhor["tributos"]) * 12 / len(pl.meses_projetados))
+    # composição soma os tributos de cada regime
+    soma = p.composicao.groupby("regime")["valor"].sum()
+    for r in soma.index:
+        assert math.isclose(soma[r], p.ranking.set_index("regime").at[r, "tributos"], rel_tol=1e-6)
+    assert set(p.mensal["fase"]) == {"Histórico", "Projeção"}
+    h = montar_painel(pl, "Neutro", "historico")
+    assert len(h.meses) == 12 and h.indicadores["n_meses"] == 12

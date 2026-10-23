@@ -33,11 +33,11 @@ O sistema faz **planejamento tributário mensal com projeção semestral**:
 | Dados de clientes | Fora do git, em `C:\ZeraPlanejamento\dados` (variável `ZERA_DADOS`). Um JSON de cadastro e um CSV de base por cliente. |
 | Leitura do Domínio | `python-calamine` lê o .xls do Domínio direto (o `xlrd` recusa). Colunas localizadas por rótulo, não por posição. |
 | Regras | Em código + `regras/dados/*.csv`, com base legal e `[CONFERIR]` quando dependem de ato não publicado. |
-| Identidade visual | Kit "ZERA - IDENTIDADE VISUAL" (timbrado, Cormorant Garamond, Inter, preto `#111111` e dourado `#C5A15F`), configurado na tela. |
+| Identidade visual | Kit "ZERA - IDENTIDADE VISUAL" (timbrado, Cormorant Garamond, Inter, preto `#111111` e dourado `#C5A15F`). No app: tema em `app/.streamlit/config.toml`, logo e fontes em `app/static/`; PDF usa o kit configurado na tela. |
 
 ---
 
-## 3. Estado atual — v0.2.0
+## 3. Estado atual — v0.3.0
 
 ```
 src/zera_planejamento/
@@ -53,9 +53,11 @@ src/zera_planejamento/
   socios.py      sócio + empresa (Lei 15.270) e otimizador de pró-labore / Fator R
   prazos.py      calendário de decisões (dias úteis); carteira.py (painel de todos os clientes)
   relatorio/     graficos.py (PNG), excel.py (gráficos nativos), pdf.py (ReportLab, timbrado)
-  app/           main.py + paginas/ (cadastro, importar, base, planejamento, socios, relatorios, carteira, depara, configuracoes)
+  painel.py      dados do dashboard (recorte por cenário e período, indicadores)
+  app/           main.py, visual.py (identidade Zera), .streamlit/config.toml (tema), static/ (logo e fontes)
+                 paginas/ (dashboard, cadastro, importar, base, planejamento, socios, relatorios, carteira, depara, configuracoes)
   cli.py         zera-planejamento app | clientes | importar | relatorio | carteira
-tests/           39 testes: cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
+tests/           40 testes: cálculo com memória, pessoa física, sublimite, sócios, prazos, carteira, leitores, fluxo, app e regressão CS Geartech
 ```
 
 **Regressão real (CS Geartech, jan–set/2026, `amostras/` fora do git):**

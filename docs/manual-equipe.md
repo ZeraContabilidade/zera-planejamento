@@ -46,11 +46,22 @@ Itens que não vêm do Domínio:
 
 Também dá para baixar a base em Excel, preencher e enviar de volta.
 
-## 6. Ler o planejamento (página **Planejamento**)
+## 6. Dashboard (tela inicial)
+- **Faixa preta:** a recomendação — mudar ou manter o regime, a economia por ano e até quando decidir.
+- **Cartões:** menor carga, economia, carga efetiva, receita, Fator R e próximo prazo.
+- **Filtros:** cenário (Neutro, Otimista, Pessimista), período (próximos meses ou últimos 12) e regimes nos gráficos.
+- **Gráficos:** passe o mouse para ver os valores; clique num item da legenda para destacá-lo.
+
+## 6.1 Ler o planejamento em detalhe (página **Planejamento**)
 - **Menor carga:** regime e economia sobre o segundo colocado no cenário Neutro. Com vantagem menor que 3%, o sistema avisa que qualquer premissa pode inverter a ordem.
 - **Cenários:** o mesmo para Otimista (+15%) e Pessimista (−15%).
 - **Pontos de equilíbrio:** margem em que o Lucro Real passa a valer a pena, faturamento em que Simples e Presumido se igualam, folha necessária para o Fator R.
 - **Transição 2026–2033:** os mesmos 12 meses sob a regra de cada ano.
+
+## 6.2 Sócios e pró-labore
+- Cadastre cada sócio (participação, pró-labore, dependentes, outras rendas) e quanto do lucro é distribuído.
+- A tabela mostra empresa + sócios por regime (Lei 15.270/2025: lucros acima de R$ 50 mil/mês e imposto mínimo).
+- **Calcular pró-labore ótimo** mostra o pró-labore de menor custo e quanto falta para o Fator R chegar a 28%.
 
 ## 7. Relatórios (página **Relatórios**)
 - **Excel:** resumo, uma aba por regime com memória mês a mês, base, origem dos dados, projeções, transição, premissas e alertas.
@@ -68,6 +79,10 @@ Regras do cliente valem antes das padrão. Exemplos:
 | `DRE_CONTA` | `4.2.1.06.000008` | `despesa_indedutivel` | Conta que precisa ser adicionada no LALUR |
 
 Depois de salvar, importe os relatórios de novo.
+
+## 9. Painel da carteira (novembro/dezembro)
+Clique em **Analisar a carteira**: todos os clientes em MUDAR, AVALIAR ou MANTER, com economia anual estimada e o
+prazo de decisão. Abra o dashboard de cada cliente em MUDAR antes de recomendar.
 
 ## Problemas comuns
 

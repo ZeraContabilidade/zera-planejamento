@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zera-planejamento"
-version = "0.2.0"
+version = "0.3.0"
 description = "Planejamento tributário mensal com projeção semestral (Simples x Presumido x Real), alimentado pelos relatórios do Domínio"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -30,7 +30,8 @@ zera-planejamento = "zera_planejamento.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-zera_planejamento = ["regras/dados/*.csv", "app/*.py", "app/paginas/*.py"]
+zera_planejamento = ["regras/dados/*.csv", "app/*.py", "app/paginas/*.py", "app/.streamlit/config.toml",
+                     "app/static/*.png", "app/static/fonts/*.ttf"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

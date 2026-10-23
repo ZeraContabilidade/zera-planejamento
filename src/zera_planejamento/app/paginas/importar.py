@@ -4,13 +4,14 @@ import datetime as dt
 import pandas as pd
 import streamlit as st
 
+from zera_planejamento.app import visual as v
 from zera_planejamento.app.estado import base_do, exigir_cliente, mostrar_alertas, tabela_brl
 from zera_planejamento.base import COLUNAS
 from zera_planejamento.dominio import importar_relatorios
 from zera_planejamento.formatos import comp
 
 c = exigir_cliente()
-st.title("Importar relatórios do Domínio")
+v.cabecalho("Importar relatórios do Domínio", f"Cliente · {c.nome}", "Serviços, saídas, entradas, extrato da folha e DRE, em Excel.")
 st.markdown(
     "Envie os relatórios exportados em Excel (o .xls do Domínio, sem converter). O sistema reconhece cada um pelo título: "
     "**Acompanhamento de Serviços**, **Acompanhamento de Saídas**, **Acompanhamento de Entradas**, **Extrato Mensal** "
