@@ -13,10 +13,13 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from functools import lru_cache
 
 from .alertas import Alertas
 from .base import RECEITAS, BaseMensal
 from .calculo import calcular
+from .calculo.comum import Contexto, chave_periodo
+from .calculo.real import apurar_lucro
 from .cliente import Cliente
 from .formatos import brl, pct
 from .projecao import VARIAVEIS, Cenario
@@ -51,6 +54,40 @@ def _com_margem(base: BaseMensal, meses: pd.PeriodIndex, m: float) -> BaseMensal
     return b
 
 
+def _avaliador_margem(base: BaseMensal, cliente: Cliente, meses: pd.PeriodIndex):
+    """Prepara os componentes invariantes e reutiliza a apuração oficial do Lucro Real."""
+    original = calcular(base, cliente, regimes=['real']).regimes['real']
+    if 'lucro_real' not in original or not original.loc[meses, 'elegivel'].all():
+        return lambda margem: float('inf')
+    ctx = Contexto(base, cliente)
+    periodo = chave_periodo(base.meses, anual=cliente.lr_periodo == 'anual')
+    grupos = sorted(periodo.groupby(periodo).indices.items())
+    pos = base.meses.get_indexer(meses)
+    lucro_original = original['lucro_real'].to_numpy()
+    # Mesma ordem de soma de calcular_real; evita subtrair tributos de um total arredondado.
+    fixos = original[['pis', 'cofins', 'cbs', 'ibs', 'icms', 'iss', 'encargos']].to_numpy()
+    receitas = base.receita_bruta().loc[meses].to_numpy()
+    soma_receitas = receitas.sum()
+    custos = base.dados.loc[meses, 'custos'].fillna(0).sum()
+    despesas = base.dados.loc[meses, 'despesas'].fillna(0).to_numpy()
+    soma_despesas = despesas.sum()
+
+    def avaliar(margem):
+        alvo = soma_receitas * (1 - margem) - custos
+        if soma_despesas > 0:
+            novas = despesas * alvo / soma_despesas
+        elif soma_receitas > 0:
+            novas = alvo * receitas / soma_receitas
+        else:
+            return float('inf')
+        lucro = lucro_original.copy()
+        lucro[pos] += despesas - novas
+        irpj, csll, _, _, _ = apurar_lucro(ctx, lucro, grupos)
+        parcelas = np.column_stack((fixos[:, :4], irpj, csll, fixos[:, 4:]))
+        return float(np.nansum(parcelas, axis=1)[pos].sum())
+    return avaliar
+
+
 def _escalar(base: BaseMensal, meses: pd.PeriodIndex, k: float) -> BaseMensal:
     b = base.copia()
     cols = RECEITAS + VARIAVEIS
@@ -64,17 +101,20 @@ def _raizes(f, lo: float, hi: float, passos: int = 12, iteracoes: int = 18) -> l
     vals = [f(x) for x in grade]
     out = []
     for (x0, v0), (x1, v1) in zip(zip(grade, vals), zip(grade[1:], vals[1:])):
-        if any(np.isnan(v) for v in (v0, v1)) or np.sign(v0) == np.sign(v1):
+        if not all(np.isfinite(v) for v in (v0, v1)) or np.sign(v0) == np.sign(v1):
             continue
         a, b, fa = x0, x1, v0
         for _ in range(iteracoes):
             mid = (a + b) / 2
             fm = f(mid)
+            if not np.isfinite(fm):
+                break
             if np.sign(fm) == np.sign(fa):
                 a, fa = mid, fm
             else:
                 b = mid
-        out.append((a + b) / 2)
+        else:
+            out.append((a + b) / 2)
     return out
 
 
@@ -85,13 +125,16 @@ def pontos_equilibrio(neutro: Cenario, cliente: Cliente) -> pd.DataFrame:
     m_max = 1 - base.dados.loc[meses, "custos"].fillna(0).sum() / rl.sum() - 0.001 if rl.sum() else 0.5
     linhas = []
     tem_resultado = base.dados.loc[meses, ["custos", "despesas"]].notna().any().any()
+    # Cache restrito a esta chamada: ambas as comparações percorrem a mesma grade.
+    custo_real = lru_cache(maxsize=256)(_avaliador_margem(base, cliente, meses)) if tem_resultado else None
+
     for outro, nome in (("presumido", "Lucro Presumido"), ("simples", "Simples Nacional")):
         if not tem_resultado:
             break
         fixo = _custo(outro, base, cliente, meses)
 
         def f(m):
-            v = _custo("real", _com_margem(base, meses, m), cliente, meses)
+            v = custo_real(m)
             return np.nan if np.isinf(v) or np.isinf(fixo) else v - fixo
 
         r = _raizes(f, -0.30, m_max)
@@ -108,7 +151,7 @@ def pontos_equilibrio(neutro: Cenario, cliente: Cliente) -> pd.DataFrame:
     def g(k):
         b = _escalar(base, meses, k)
         a, c = _custo("simples", b, cliente, meses), _custo("presumido", b, cliente, meses)
-        if np.isinf(a) and np.isinf(c):
+        if not np.isfinite(a) or not np.isfinite(c):
             return np.nan
         return float(np.clip(a - c, -1e15, 1e15))
 
@@ -121,8 +164,13 @@ def pontos_equilibrio(neutro: Cenario, cliente: Cliente) -> pd.DataFrame:
                    f"({pct(k, 0)} do projetado). {'Abaixo' if abaixo else 'Acima'} disso o Simples é mais barato.")
         eq = fat * k
     else:
-        lado = "Simples" if g(1.0) < 0 else "Presumido"
-        eq, leitura = np.nan, f"Sem cruzamento entre 20% e 400% do faturamento projetado: {lado} continua mais barato."
+        diferenca = g(1.0)
+        if np.isnan(diferenca) and all(not np.isfinite(_custo(reg, base, cliente, meses))
+                                      for reg in ('simples', 'presumido')):
+            eq, leitura = np.nan, 'Simples e Presumido indisponíveis no período: sem comparação de faturamento.'
+        else:
+            lado = "Simples" if diferenca < 0 else "Presumido"
+            eq, leitura = np.nan, f"Sem cruzamento entre 20% e 400% do faturamento projetado: {lado} continua mais barato."
     linhas.append({"comparacao": "Simples × Lucro Presumido", "indicador": "Faturamento médio mensal", "unidade": "R$",
                    "equilibrio": eq, "projetado": fat, "leitura": leitura})
 
@@ -153,7 +201,8 @@ def curva_margem(neutro: Cenario, cliente: Cliente, pontos: int = 18) -> pd.Data
         return pd.DataFrame()
     hi = min(0.6, 1 - base.dados.loc[meses, "custos"].fillna(0).sum() / rl - 0.001)
     fixos = {r: _custo(r, base, cliente, meses) for r in ("simples", "presumido")}
+    custo_real = _avaliador_margem(base, cliente, meses)
     linhas = []
     for m in np.linspace(-0.1, hi, pontos):
-        linhas.append({"margem": m, **fixos, "real": _custo("real", _com_margem(base, meses, m), cliente, meses)})
+        linhas.append({"margem": m, **fixos, "real": custo_real(m)})
     return pd.DataFrame(linhas).replace(np.inf, np.nan)

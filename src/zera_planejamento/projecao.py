@@ -55,6 +55,10 @@ def _indice_sazonal(rec: pd.Series, modo: str, al: Alertas) -> pd.Series:
     razoes = [pd.Series(rec[rec.index.year == a].values / rec[rec.index.year == a].mean(), index=range(1, 13))
               for a in anos]
     indice = pd.concat(razoes, axis=1).mean(axis=1)
+    if not np.isfinite(indice.to_numpy()).all() or (indice <= 0).any():
+        al.atencao("Projeção", "Índice sazonal nulo ou inválido: sazonalidade não aplicada; "
+                   "revise os meses sem receita no histórico.")
+        return neutro
     al.info("Projeção", f"Índice sazonal aplicado ({len(anos)} anos completos).")
     return indice / indice.mean()
 

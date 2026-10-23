@@ -13,7 +13,8 @@ Lucros e dividendos — Lei 15.270/2025
     (antecipação do IRPFM).
     IRPFM (imposto mínimo anual): renda total acima de R$ 600 mil → alíquota (renda ÷ 60.000 − 10)%,
     10% a partir de R$ 1,2 mi. Deduz o IR da tabela progressiva e o redutor que impede a soma da
-    alíquota efetiva da PJ (IRPJ + CSLL ÷ lucro contábil) com a do IRPFM de passar de 34%
+    alíquota efetiva da PJ ((IRPJ + CSLL) ÷ lucro antes desses tributos) com a alíquota
+    incremental da PF de passar de 34% (Lei 9.250, art. 16-B, § 3º)
     [CONFERIR: regulamentação do redutor, aplicação ao Simples e restituição do IRRF excedente].
 """
 from __future__ import annotations
@@ -82,17 +83,36 @@ def aliquota_irpfm(renda_anual: float) -> float:
     return (renda_anual / 60_000 - 10) / 100
 
 
+def aliquota_efetiva_pj(irpj_csll: float, lucro_liquido: float) -> float:
+    """Lei 9.250/1995, art. 16-B, §3º, I e III (Lei 15.270/2025).
+
+    O lucro contábil para o redutor é anterior aos tributos sobre a renda:
+    soma-se o IRPJ/CSLL ao lucro líquido recebido do motor.
+    """
+    lucro_antes = lucro_liquido + irpj_csll
+    return irpj_csll / lucro_antes if lucro_antes > 0 else 0.0
+
+
 def irpfm(renda_anual: float, dividendos_anuais: float, ir_tabela_anual: float, aliquota_pj: float) -> dict[str, float]:
     """IRPFM anual do sócio.
 
     bruto   = renda × alíquota
-    redutor = dividendos × (alíquota PJ + alíquota IRPFM − 34%), se positivo, até o IRPFM dos dividendos
+    redutor = dividendos × (alíquota PJ + alíquota incremental PF − 34%), se positivo
     devido  = máx(0, bruto − IR da tabela − redutor)
     O IRRF de 10% sobre dividendos é antecipação: abate do devido no ajuste anual.
+    Lei 9.250/1995, art. 16-B, §§2º e 3º, II, incluído pela Lei 15.270/2025:
+    a alíquota efetiva PF é o acréscimo do imposto mínimo antes do redutor
+    causado pelos dividendos dividido pelos dividendos. Mantêm-se as demais
+    rendas e deduções informadas na simulação sem dividendos.
     """
     aliq = aliquota_irpfm(renda_anual)
     bruto = renda_anual * aliq
-    excesso = max(0.0, aliquota_pj + aliq - CARGA_COMBINADA_MAX)
-    redutor = min(dividendos_anuais * excesso, dividendos_anuais * aliq)
+    renda_sem_dividendos = max(0.0, renda_anual - dividendos_anuais)
+    imposto_sem = max(0.0, renda_sem_dividendos * aliquota_irpfm(renda_sem_dividendos) - ir_tabela_anual)
+    imposto_com = max(0.0, bruto - ir_tabela_anual)
+    incremento = max(0.0, imposto_com - imposto_sem)
+    efetiva_pf = incremento / dividendos_anuais if dividendos_anuais > 0 else 0.0
+    excesso = max(0.0, aliquota_pj + efetiva_pf - CARGA_COMBINADA_MAX)
+    redutor = min(max(0.0, dividendos_anuais) * excesso, incremento)
     devido = max(0.0, bruto - ir_tabela_anual - redutor)
     return {"aliquota": aliq, "bruto": bruto, "redutor": redutor, "devido": devido}

@@ -56,7 +56,8 @@ def _impedimento_sublimite(rb: pd.Series, informado: pd.Series) -> tuple[pd.Seri
     rb_inf = rb[informado.values]
     por_ano = rb_inf.groupby(rb_inf.index.year).agg(["sum", "size"])
     proporcional, ano_corrente, acum, ano_anterior_acima, desde = False, None, 0.0, False, None
-    for pa in rb.index:
+    impedimentos = np.zeros(len(rb), dtype=bool)
+    for i, (pa, receita) in enumerate(zip(rb.index, rb.to_numpy())):
         if pa.year != ano_corrente:
             ano_corrente, acum, desde, ano_anterior_acima = pa.year, 0.0, None, False
             if pa.year - 1 in por_ano.index:
@@ -64,12 +65,12 @@ def _impedimento_sublimite(rb: pd.Series, informado: pd.Series) -> tuple[pd.Seri
                 proporcional |= n < 12
                 # ano anterior acima do sublimite (proporcional aos meses informados): impedida o ano todo
                 ano_anterior_acima = soma / n * 12 > SUBLIMITE_ICMS_ISS
-        impedido[pa] = ano_anterior_acima or (desde is not None and pa >= desde)
-        acum += rb[pa]
+        impedimentos[i] = ano_anterior_acima or (desde is not None and pa >= desde)
+        acum += receita
         # excesso acima de 20% no ano: efeito no mês seguinte; até 20%, só em janeiro (regra do ano anterior)
         if desde is None and acum > SUBLIMITE_ICMS_ISS * (1 + LIMITE_EXCESSO):
             desde = pa + 1
-    return impedido, proporcional
+    return pd.Series(impedimentos, index=rb.index), proporcional
 
 
 def calcular_simples(ctx: Contexto) -> pd.DataFrame:
@@ -86,29 +87,34 @@ def calcular_simples(ctx: Contexto) -> pd.DataFrame:
     impedido, sub_proporcional = _impedimento_sublimite(rb, tem_receita)
     ordinais, informado = d.index.asi8, tem_receita.to_numpy()
     rb_v, folha_v = rb.to_numpy(), folha.to_numpy()
+    rec_v = rec.to_numpy()
+    impedido_v, icms_v = impedido.to_numpy(), icms_rec.to_numpy()
+    iss_v, cpp_v = locais['iss'].to_numpy(), cpp_iv.to_numpy()
+    coluna_iv = rec.columns.get_loc('rec_anexo_iv')
 
     linhas, proporcional, sem_partilha = [], False, set()
     acum, ano_corrente, excluida_desde = 0.0, None, None
-    for pa in d.index:
-        soma_rb, n = _janela(rb_v, ordinais, informado, pa)
-        soma_fs, _ = _janela(folha_v, ordinais, informado, pa)
+    for i, pa in enumerate(d.index):
+        ini, fim = janela_rbt12(pa)
+        sel = (ordinais >= ini.ordinal) & (ordinais <= fim.ordinal) & informado
+        soma_rb, soma_fs, n = float(rb_v[sel].sum()), float(folha_v[sel].sum()), int(sel.sum())
         if n == 12:
             rbt12, fs12 = soma_rb, soma_fs
         elif n > 0:
             rbt12, fs12, proporcional = soma_rb / n * 12, soma_fs / n * 12, True
         else:
-            rbt12, fs12, proporcional = rb[pa] * 12, folha[pa] * 12, True
+            rbt12, fs12, proporcional = rb_v[i] * 12, folha_v[i] * 12, True
         fator_r = fs12 / rbt12 if rbt12 > 0 else 0.0
         anexo_fr = "III" if fator_r >= FATOR_R_CORTE else "V"
 
-        fora = bool(impedido[pa]) or rbt12 > SUBLIMITE_ICMS_ISS
+        fora = bool(impedido_v[i]) or rbt12 > SUBLIMITE_ICMS_ISS
         das, das_cbs, das_ibs, faixa_max, aliqs, hibrido_ok = 0.0, 0.0, 0.0, 1, {}, True
         excluido = 0.0
-        for col in rec.columns:
+        for j, col in enumerate(rec.columns):
             anexo = ANEXO_COLUNA.get(col, anexo_fr)
             aliq, faixa = aliquota_efetiva(rbt12, anexo)
             aliqs[col] = aliq
-            valor = rec.at[pa, col]
+            valor = rec_v[i, j]
             if valor <= 0:
                 continue
             faixa_max = max(faixa_max, faixa)
@@ -127,20 +133,20 @@ def calcular_simples(ctx: Contexto) -> pd.DataFrame:
                     das_cbs += das_col * p["cbs"]
                     das_ibs += das_col * p["ibs"]
 
-        icms_fora = float(icms_rec[pa]) if fora else 0.0
-        iss_fora = float(locais.at[pa, "iss"]) if fora else 0.0
-        cpp_fora = float(cpp_iv[pa]) if rec.at[pa, "rec_anexo_iv"] > 0 else 0.0
+        icms_fora = float(icms_v[i]) if fora else 0.0
+        iss_fora = float(iss_v[i]) if fora else 0.0
+        cpp_fora = float(cpp_v[i]) if rec_v[i, coluna_iv] > 0 else 0.0
 
         if pa.year != ano_corrente:
             ano_corrente, acum = pa.year, 0.0
         elegivel = excluida_desde is None or pa < excluida_desde
-        acum += rb[pa]
+        acum += rb_v[i]
         if acum > LIMITE_RECEITA * (1 + LIMITE_EXCESSO) and (excluida_desde is None or excluida_desde > pa + 1):
             excluida_desde = pa + 1          # excesso > 20%: exclusão no mês seguinte
         elif excluida_desde is None and acum > LIMITE_RECEITA:
             excluida_desde = pd.Period(year=pa.year + 1, month=1, freq="M")
 
-        linhas.append({"competencia": pa, "receita": rb[pa], "rbt12": rbt12, "fs12": fs12, "fator_r": fator_r,
+        linhas.append({"competencia": pa, "receita": rb_v[i], "rbt12": rbt12, "fs12": fs12, "fator_r": fator_r,
                        "anexo_fator_r": anexo_fr, "faixa": faixa_max,
                        **{f"aliq_{k}": v for k, v in aliqs.items()},
                        "das": das, "das_icms_iss_excluido": excluido, "das_cbs": das_cbs, "das_ibs": das_ibs, "cpp_fora_das": cpp_fora,

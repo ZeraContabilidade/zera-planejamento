@@ -42,12 +42,15 @@ class Resultado:
         linhas = []
         for r, df in self.regimes.items():
             sub = df if meses is None else df.loc[df.index.intersection(meses)]
-            receita = float(sub["receita"].sum())
-            total = float(sub["total"].sum()) if sub["total"].notna().all() else np.nan
+            valores = dict(zip(sub.columns, sub.to_numpy().T))
+            receita = float(np.nansum(np.asarray(valores['receita'], dtype=float)))
+            totais = np.asarray(valores['total'], dtype=float)
+            total = float(totais.sum()) if not np.isnan(totais).any() else np.nan
             linhas.append({"regime": r, "rotulo": ROTULO[r], "receita": receita, "tributos": total,
                            "carga": total / receita if receita and not np.isnan(total) else np.nan,
-                           "elegivel": bool(sub["elegivel"].all()) and not np.isnan(total),
-                           **{f"comp_{k}": float(sub[k].sum()) for k in COMPONENTES[r] if k in sub}})
+                           "elegivel": not sub.empty and bool(valores['elegivel'].all()) and not np.isnan(total),
+                           **{f"comp_{k}": float(np.nansum(np.asarray(valores[k], dtype=float)))
+                              for k in COMPONENTES[r] if k in valores}})
         res = pd.DataFrame(linhas).set_index("regime")
         validos = res[res["elegivel"]].sort_values("tributos")
         res["melhor"] = False
@@ -61,30 +64,29 @@ class Resultado:
 
 def _hibrido(simples: pd.DataFrame) -> pd.DataFrame:
     """Simples com opção pelo IBS/CBS "por fora". Antes de 2027 a opção não existe: vale o DAS normal."""
-    antes = pd.Series(simples.index.year < 2027, index=simples.index)
-    df = pd.DataFrame({"receita": simples["receita"]}, index=simples.index)
-    for k in COMPONENTES["simples_hibrido"]:
-        df[k] = simples[k]
-    df.loc[antes, "hibrido_das"] = simples.loc[antes, "das"]
-    df.loc[antes, ["hibrido_cbs", "hibrido_ibs"]] = 0.0
-    df["total"] = simples["hibrido_total"].where(~antes, simples["total"])
-    df["elegivel"] = simples["elegivel"] & (simples["hibrido_ok"] | antes)
-    return df
+    antes = simples.index.year < 2027
+    valores = {k: simples[k].to_numpy() for k in COMPONENTES['simples_hibrido']}
+    valores['hibrido_das'] = np.where(antes, simples['das'].to_numpy(), valores['hibrido_das'])
+    for k in ('hibrido_cbs', 'hibrido_ibs'):
+        valores[k] = np.where(antes, 0., valores[k])
+    return pd.DataFrame({'receita': simples['receita'].to_numpy(), **valores,
+                         'total': np.where(antes, simples['total'].to_numpy(), simples['hibrido_total'].to_numpy()),
+                         'elegivel': simples['elegivel'].to_numpy() & (simples['hibrido_ok'].to_numpy() | antes)},
+                        index=simples.index)
 
 
 def calcular(base: BaseMensal, cliente: Cliente, alertas: Alertas | None = None,
              regimes: list[str] | None = None) -> Resultado:
     """Calcula os regimes pedidos (padrão: todos). O híbrido só aparece se houver mês ≥ 2027 calculável."""
     pedidos = regimes or REGIMES
-    ctx = Contexto(base=base, cliente=cliente, alertas=alertas or Alertas())
+    ctx = Contexto(base=base, cliente=cliente, alertas=alertas or Alertas(), memoria={})
     saida = {}
     if "simples" in pedidos or "simples_hibrido" in pedidos:
         simples = calcular_simples(ctx)
         if "simples" in pedidos:
             saida["simples"] = simples
-        hib = _hibrido(simples)
         if "simples_hibrido" in pedidos and (simples["hibrido_ok"]).any():
-            saida["simples_hibrido"] = hib
+            saida["simples_hibrido"] = _hibrido(simples)
     if "presumido" in pedidos:
         saida["presumido"] = calcular_presumido(ctx)
     if "real" in pedidos:
