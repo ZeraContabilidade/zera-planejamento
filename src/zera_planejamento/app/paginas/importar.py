@@ -93,3 +93,6 @@ if st.button("Gravar na base do cliente", type="primary", icon=":material/save:"
             imp.dre_contas.to_excel(w, sheet_name="DRE por conta", index=False)
     del st.session_state["importacao"]
     st.success(f"{n} valores gravados. Relatórios originais e conferência guardados em {pasta}.", icon=":material/check:")
+    a, b = st.columns(2)
+    a.page_link("paginas/dashboard.py", label="Ver o dashboard do cliente", icon=":material/dashboard:")
+    b.page_link("paginas/base.py", label="Conferir a base mensal", icon=":material/table_view:")

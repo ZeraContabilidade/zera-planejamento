@@ -25,7 +25,7 @@ Sistema Domínio). Faz planejamento tributário mensal com projeção semestral:
 **Natureza do resultado:** rascunho técnico para o contador revisar. Nunca prometer resultado fiscal.
 
 Repositório: `github.com/ZeraContabilidade/zera-planejamento` (privado). Branch principal: `main`.
-Versão atual: **0.4.0** (PR #3). Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
+Versão atual: **0.5.0**. Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
 
 ---
 
@@ -33,7 +33,7 @@ Versão atual: **0.4.0** (PR #3). Histórico em `CHANGELOG.md`; especificação 
 
 ```bash
 python -m pip install -e .[dev]      # Python 3.11+ (local usa 3.13; CI roda 3.11 e 3.12, Windows e Ubuntu)
-python -m pytest                     # 45 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
+python -m pytest                     # 54 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
 zera-planejamento app                # abre o Streamlit (roda dentro de src/zera_planejamento/app/ p/ ler o tema)
 zera-planejamento carteira           # painel de todos os clientes no terminal
 ```
@@ -97,6 +97,8 @@ várias vezes) → telas / `relatorio.gerar_relatorios`.
   ou caminho de menu do Domínio. Na dúvida, marcar `[CONFERIR]` e incluir em `pendencias_conferir()`.
 - O motor (`calculo/`) é a única fonte dos números; telas e relatórios só exibem.
 - **Todo cálculo novo ou alterado tem teste com memória de cálculo nos comentários** (ver `tests/test_calculo.py`).
+- `tests/test_validacao_casos.py` traz empresas fictícias calculadas à mão com a memória completa: use como referência
+  e não altere os valores esperados sem base legal.
 - A regressão da CS Geartech (`tests/test_regressao_cs_geartech.py`) precisa continuar batendo — Presumido
   R$ 284.704,68, Simples R$ 237.945,88, Real R$ 574.294,06 (jan–set/2026). Ela só roda onde há `amostras/`; se sua
   mudança puder alterar esses números, **explique no PR** e peça para rodar localmente.
@@ -118,6 +120,7 @@ várias vezes) → telas / `relatorio.gerar_relatorios`.
 | 0.2.0 | Sócio + empresa (Lei 15.270), pró-labore ótimo, sublimite exato, painel da carteira, prazos. |
 | 0.3.0 | Identidade visual Zera no app, dashboard interativo, cache do planejamento entre telas. |
 | 0.4.0 | Cadastro pelo CNPJ (dados abertos da RFB), correções no cadastro (sócios apagados, modo novo cliente). |
+| 0.5.0 | Parecer ao cliente (Word + PDF), casos de validação calculados à mão, roteiro do cliente na navegação. |
 
 ---
 

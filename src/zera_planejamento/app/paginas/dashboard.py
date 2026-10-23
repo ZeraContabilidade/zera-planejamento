@@ -28,8 +28,15 @@ v.cabecalho(c.nome, "Dashboard · planejamento tributário",
             f"CNPJ {c.cnpj or '–'} · regime atual: {ROTULO.get(c.regime_atual, c.regime_atual)}")
 try:
     pl = planejamento_do(c, base)
-except ValueError as erro:
-    st.info(str(erro), icon=":material/upload_file:")
+except ValueError:
+    v.faixa("Comece pelos relatórios do Domínio",
+            "Exporte em Excel, de janeiro do ano anterior até o último mês fechado: Acompanhamento de Serviços (ou "
+            "Saídas), Acompanhamento de Entradas, Extrato Mensal da folha e a D.R.E. O dashboard aparece aqui assim "
+            "que a base tiver receita.", "Primeiro passo")
+    a, b, d = st.columns(3)
+    a.page_link("paginas/importar.py", label="Importar relatórios do Domínio", icon=":material/upload_file:")
+    b.page_link("paginas/base.py", label="Digitar a base mensal", icon=":material/table_view:")
+    d.page_link("paginas/cadastro.py", label="Conferir o cadastro", icon=":material/badge:")
     st.stop()
 
 mh, mp = pl.meses_historico, pl.meses_projetados

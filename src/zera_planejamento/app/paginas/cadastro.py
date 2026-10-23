@@ -10,6 +10,9 @@ novo = st.session_state.get("novo_cliente", False)     # vale até salvar ou esc
 c = None if novo else cliente_atual()
 v.cabecalho("Novo cliente" if c is None else c.nome, "Cadastro do cliente", "Premissas do cliente. Tudo aqui muda o cálculo; confira antes de gerar o planejamento.")
 c = c or Cliente(nome="")
+if st.session_state.pop("cadastro_salvo", False):
+    st.success("Cadastro salvo. Próximo passo: importar os relatórios do Domínio.", icon=":material/check:")
+    st.page_link("paginas/importar.py", label="Importar relatórios do Domínio", icon=":material/upload_file:")
 
 # ---------------- consulta do CNPJ (dados abertos da Receita Federal) ----------------
 v.rotulo("Buscar dados na Receita Federal")
@@ -137,5 +140,5 @@ if salvar:
     st.session_state["cliente_id"] = novo_c.id
     st.session_state.pop("receita", None)
     st.session_state.pop("novo_cliente", None)
-    st.success("Cadastro salvo.", icon=":material/check:")
+    st.session_state["cadastro_salvo"] = True
     st.rerun()
