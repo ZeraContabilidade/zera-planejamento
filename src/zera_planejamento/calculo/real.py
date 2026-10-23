@@ -20,53 +20,27 @@ import pandas as pd
 
 from ..formatos import brl
 from .comum import (Contexto, base_credito_iva, base_credito_pis_cofins, cbs_ibs, chave_periodo,
-                    encargos_patronais, fator_icms_iss, nao_cumulativo, pis_cofins_vigente, ratear,
+                    encargos_patronais, fator_icms_iss, _nao_cumulativo_array, pis_cofins_vigente, ratear_array,
                     receita_liquida, tributos_locais)
 
 
-def calcular_real(ctx: Contexto) -> pd.DataFrame:
-    rf, idx, c = ctx.rf, ctx.d.index, ctx.cliente
-    rl = receita_liquida(ctx)
-    locais = tributos_locais(ctx)
-    fator = fator_icms_iss(ctx)
-    icms_deb, icms_cred, iss = locais["icms_debito"] * fator, locais["icms_credito"] * fator, locais["iss"] * fator
-    vigente = pis_cofins_vigente(ctx)
-    fin = ctx.col("receitas_financeiras")
+def apurar_lucro(ctx: Contexto, lucro: np.ndarray, grupos=None):
+    """Apuração única de IRPJ/CSLL e prejuízos, reutilizada nas curvas de margem.
 
-    debito = (rl - (icms_deb if rf.excluir_icms_base_pis_cofins else 0)).clip(lower=0) * rf.pis_cofins_nao_cumulativo
-    credito = base_credito_pis_cofins(ctx, locais) * rf.pis_cofins_nao_cumulativo
-    pc, saldo_pc = nao_cumulativo(debito * vigente, credito * vigente)
-    pc_fin = fin * rf.pis_cofins_receita_financeira * vigente
-    part_pis = rf.pis_nao_cumulativo / rf.pis_cofins_nao_cumulativo
-    iva = cbs_ibs(ctx, (rl - icms_deb - iss).clip(lower=0), base_credito_iva(ctx, locais))
-    icms, _ = nao_cumulativo(icms_deb, icms_cred)
-    enc = encargos_patronais(ctx)
-
-    tem_resultado = ctx.d[["custos", "despesas"]].notna().any(axis=1)
-    custos_desp = ctx.col("custos") + ctx.col("despesas")
-    if not tem_resultado.any():
-        if c.lucro_anual_estimado is None:
-            ctx.alertas.atencao("Real", "Sem custos/despesas na base e sem lucro anual estimado no cadastro: "
-                                        "o Lucro Real não foi calculado. Importe a DRE ou informe a estimativa.")
-            return pd.DataFrame(index=idx).assign(receita=rl, total=np.nan, elegivel=False)
-        ctx.alertas.atencao("Real", f"Sem DRE: Lucro Real calculado com o lucro anual estimado do cadastro "
-                                    f"({brl(c.lucro_anual_estimado)}) rateado pela receita.")
-        receita_12m = rl.tail(12).sum()
-        margem = c.lucro_anual_estimado / receita_12m if receita_12m > 0 else 0.0
-        lucro_antes = rl * margem   # margem = lucro estimado ÷ receita dos últimos 12 meses
-    else:
-        lucro_antes = (rl + fin - custos_desp - ctx.col("salarios") - ctx.col("pro_labore") - ctx.col("fgts")
-                       - enc - pc - pc_fin - icms - iss)
-    lucro = lucro_antes + ctx.col("adicoes") - ctx.col("exclusoes")
-
-    periodo = chave_periodo(idx, anual=c.lr_periodo == "anual")
-    irpj, csll = pd.Series(0.0, index=idx), pd.Series(0.0, index=idx)
-    compensado, saldo_prej = pd.Series(0.0, index=idx), pd.Series(0.0, index=idx)
+    Grupos opcionais são posições dos meses de cada período de apuração da mesma base.
+    Mantém a ordem temporal e o transporte dos saldos de todos os períodos históricos.
+    """
+    rf, c, idx = ctx.rf, ctx.cliente, ctx.d.index
+    if grupos is None:
+        periodo = chave_periodo(idx, anual=c.lr_periodo == "anual")
+        grupos = sorted(periodo.groupby(periodo).indices.items())
+    irpj, csll = np.zeros(len(idx)), np.zeros(len(idx))
+    compensado, saldo_prej = np.zeros(len(idx)), np.zeros(len(idx))
+    lucros = lucro
     prejuizo, base_neg = c.prejuizo_fiscal_inicial, c.base_negativa_inicial
-    for _, meses in sorted(periodo.groupby(periodo).groups.items()):
-        meses = pd.PeriodIndex(meses)
-        n = len(meses)
-        resultado = float(lucro[meses].sum())
+    for _, pos in grupos:
+        n = len(pos)
+        resultado = float(np.nansum(lucros[pos]))
         if resultado > 0:
             comp_ir = min(prejuizo, rf.trava_compensacao * resultado)
             comp_cs = min(base_neg, rf.trava_compensacao * resultado)
@@ -79,11 +53,53 @@ def calcular_real(ctx: Contexto) -> pd.DataFrame:
             base_neg += -resultado
             b_ir = b_cs = 0.0
         v_ir = rf.irpj * b_ir + rf.irpj_adicional * max(0.0, b_ir - rf.irpj_limite_adicional_mes * n)
-        pesos = lucro[meses]
-        irpj[meses] = ratear(v_ir, pesos)
-        csll[meses] = ratear(rf.csll * b_cs, pesos)
-        compensado[meses] = ratear(comp_ir, pesos)
-        saldo_prej[meses] = prejuizo
+        pesos = lucros[pos]
+        irpj[pos] = ratear_array(v_ir, pesos)
+        csll[pos] = ratear_array(rf.csll * b_cs, pesos)
+        compensado[pos] = ratear_array(comp_ir, pesos)
+        saldo_prej[pos] = prejuizo
+
+    return irpj, csll, compensado, saldo_prej, prejuizo
+
+
+def calcular_real(ctx: Contexto) -> pd.DataFrame:
+    rf, idx, c = ctx.rf, ctx.d.index, ctx.cliente
+    rl = receita_liquida(ctx).to_numpy()
+    locais = tributos_locais(ctx)
+    fator = fator_icms_iss(ctx).to_numpy()
+    icms_deb = locais['icms_debito'].to_numpy() * fator
+    icms_cred = locais['icms_credito'].to_numpy() * fator
+    iss = locais['iss'].to_numpy() * fator
+    vigente = pis_cofins_vigente(ctx).to_numpy()
+    fin = ctx.vetor("receitas_financeiras")
+
+    debito = np.maximum(rl - (icms_deb if rf.excluir_icms_base_pis_cofins else 0), 0) * rf.pis_cofins_nao_cumulativo
+    credito = base_credito_pis_cofins(ctx, locais).to_numpy() * rf.pis_cofins_nao_cumulativo
+    pc, saldo_pc = _nao_cumulativo_array(debito * vigente, credito * vigente)
+    pc_fin = fin * rf.pis_cofins_receita_financeira * vigente
+    part_pis = rf.pis_nao_cumulativo / rf.pis_cofins_nao_cumulativo
+    iva = cbs_ibs(ctx, np.maximum(rl - icms_deb - iss, 0), base_credito_iva(ctx, locais))
+    icms, _ = _nao_cumulativo_array(icms_deb, icms_cred)
+    enc = encargos_patronais(ctx).to_numpy()
+
+    tem_resultado = ctx.d[["custos", "despesas"]].notna().any(axis=1)
+    custos_desp = ctx.vetor("custos") + ctx.vetor("despesas")
+    if not tem_resultado.any():
+        if c.lucro_anual_estimado is None:
+            ctx.alertas.atencao("Real", "Sem custos/despesas na base e sem lucro anual estimado no cadastro: "
+                                        "o Lucro Real não foi calculado. Importe a DRE ou informe a estimativa.")
+            return pd.DataFrame(index=idx).assign(receita=rl, total=np.nan, elegivel=False)
+        ctx.alertas.atencao("Real", f"Sem DRE: Lucro Real calculado com o lucro anual estimado do cadastro "
+                                    f"({brl(c.lucro_anual_estimado)}) rateado pela receita.")
+        receita_12m = rl[-12:].sum()
+        margem = c.lucro_anual_estimado / receita_12m if receita_12m > 0 else 0.0
+        lucro_antes = rl * margem   # margem = lucro estimado ÷ receita dos últimos 12 meses
+    else:
+        lucro_antes = (rl + fin - custos_desp - ctx.vetor("salarios") - ctx.vetor("pro_labore") - ctx.vetor("fgts")
+                       - enc - pc - pc_fin - icms - iss)
+    lucro = lucro_antes + ctx.vetor("adicoes") - ctx.vetor("exclusoes")
+
+    irpj, csll, compensado, saldo_prej, prejuizo = apurar_lucro(ctx, lucro)
 
     res = pd.DataFrame({
         "receita": rl, "lucro_antes_irpj": lucro_antes, "adicoes": ctx.col("adicoes"), "exclusoes": ctx.col("exclusoes"),

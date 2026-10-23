@@ -70,9 +70,19 @@ def serializar(obj):
     return obj
 
 
-def comparar(atual, foto, caminho=''):
+def comparar(atual, foto, caminho='', tolerancia=.01):
     if isinstance(foto, dict):
         assert atual.keys() == foto.keys(), caminho
+        if set(foto) == {'indice', 'colunas', 'dados'}:
+            assert atual['indice'] == foto['indice'], caminho
+            assert atual['colunas'] == foto['colunas'], caminho
+            assert len(atual['dados']) == len(foto['dados']), caminho
+            for i, (linha, referencia) in enumerate(zip(atual['dados'], foto['dados'])):
+                assert len(linha) == len(referencia), caminho
+                for col, a, b in zip(foto['colunas'], linha, referencia):
+                    tol = 1e-10 if col.startswith(('aliq', 'fator', 'carga', 'participacao')) else .01
+                    comparar(a, b, f'{caminho}/{i}/{col}', tol)
+            return
         for k in foto:
             comparar(atual[k], foto[k], f'{caminho}/{k}')
     elif isinstance(foto, list):
@@ -80,7 +90,7 @@ def comparar(atual, foto, caminho=''):
         for i, (a, b) in enumerate(zip(atual, foto)):
             comparar(a, b, f'{caminho}/{i}')
     elif isinstance(foto, (int, float)) and not isinstance(foto, bool):
-        assert atual == pytest.approx(foto, abs=0.01, rel=0), caminho
+        assert atual == pytest.approx(foto, abs=tolerancia, rel=0), caminho
     else:
         assert atual == foto, caminho
 
@@ -88,6 +98,15 @@ def comparar(atual, foto, caminho=''):
 @pytest.mark.parametrize('nome,b,cli', list(casos()), ids=lambda x: x if isinstance(x, str) else None)
 def test_foto_motor(nome, b, cli):
     foto = json.loads(ARQUIVO.read_text(encoding='utf-8'))[nome]
+    if nome == 'conftest_com_socio':
+        # Exceção legal explícita, sem regravar a foto original: Lei 9.250/1995,
+        # art. 16-B, §3º, I/III (Lei 15.270/2025). IR/(lucro líquido+IR).
+        # A foto anterior guardava a=IR/lucro líquido; a corrigida é a/(1+a).
+        resumo = foto['planejamento']['socios']['resumo']
+        coluna = resumo['colunas'].index('aliquota_pj')
+        for regime in ('presumido', 'real'):
+            linha = resumo['dados'][resumo['indice'].index(regime)]
+            linha[coluna] = linha[coluna] / (1 + linha[coluna])
     comparar(serializar(calcular(b, cli)), foto['calcular'])
     comparar(serializar(gerar_planejamento(cli, b)), foto['planejamento'])
 

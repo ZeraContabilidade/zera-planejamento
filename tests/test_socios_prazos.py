@@ -46,11 +46,11 @@ def test_dividendos_e_irpfm():
     assert aliquota_irpfm(600_000) == 0.0
     perto(aliquota_irpfm(900_000), 0.05, 1e-12)            # 900.000 ÷ 60.000 − 10 = 5%
     assert aliquota_irpfm(2_000_000) == 0.10
-    # renda 1,5 mi (1,2 mi de lucros), IR da tabela 60 mil, PJ com 30%: 30% + 10% − 34% = 6% → redutor 72 mil
-    # bruto 150.000 − 60.000 − 72.000 = 18.000
+    # Lei 9.250, art. 16-B, §3º, II: imposto incremental 90 mil / dividendos 1,2 mi = 7,5%.
+    # Redutor = (30% + 7,5% − 34%) × 1,2 mi = 42 mil; devido = 150 − 60 − 42 = 48 mil.
     r = irpfm(1_500_000, 1_200_000, 60_000, 0.30)
-    perto(r["redutor"], 72_000)
-    perto(r["devido"], 18_000)
+    perto(r["redutor"], 42_000)
+    perto(r["devido"], 48_000)
     # PJ abaixo de 24%: sem redutor
     perto(irpfm(1_500_000, 1_200_000, 60_000, 0.20)["devido"], 90_000)
 
@@ -97,11 +97,12 @@ def test_visao_socios_com_lucro_alto():
     p = v.resumo.loc["presumido"]
     # lucros de ~R$ 150 mil/mês > R$ 50 mil → IRRF de 10% sobre o total distribuído
     perto(p["irrf_dividendos"], 0.10 * p["dividendos"])
-    # renda > R$ 1,2 mi → IRPFM a 10%; redutor = lucros × máx(0, alíquota PJ + 10% − 34%)
+    # Renda > R$ 1,2 mi: imposto bruto 10%; sem dividendos, renda abaixo de 600 mil.
     d = v.detalhe.set_index("regime").loc["presumido"]
     assert d["aliquota_irpfm"] == 0.10
-    esperado = max(0.0, d["renda_anual"] * 0.10 - d["irrf_pro_labore"]
-                   - d["dividendos"] * max(0.0, p["aliquota_pj"] + 0.10 - 0.34))
+    antes_redutor = max(0.0, d['renda_anual'] * .10 - d['irrf_pro_labore'])
+    efetiva_pf = antes_redutor / d['dividendos']
+    esperado = max(0.0, antes_redutor - d['dividendos'] * max(0.0, p['aliquota_pj'] + efetiva_pf - .34))
     perto(d["irpfm"], esperado)
     # INSS do sócio: 932,31 × 12
     perto(p["inss_socios"], 932.31 * 12, 0.05)

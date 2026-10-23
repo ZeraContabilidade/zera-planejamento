@@ -31,7 +31,7 @@ from .calculo import ROTULO, Resultado, calcular
 from .cliente import Cliente, Socio
 from .formatos import brl
 from .regras.pessoa_fisica import (DIVIDENDO_LIMITE_MES, SALARIO_MINIMO, inss_pro_labore, irpfm, irrf_dividendos,
-                                   irrf_mensal)
+                                   irrf_mensal, aliquota_efetiva_pj)
 from .regras.simples import FATOR_R_CORTE, INICIO_RBT12_DEFASADA
 
 POR_FORA = {"simples": [], "simples_hibrido": ["hibrido_cbs", "hibrido_ibs"], "presumido": ["cbs", "ibs"],
@@ -80,7 +80,10 @@ def visao_socios(cliente: Cliente, base: BaseMensal, resultado: Resultado, meses
     if not cliente.socios:
         return VisaoSocios(pd.DataFrame(), pd.DataFrame(),
                            ["Cadastre os sócios (participação e pró-labore) para ver a carga sócio + empresa."])
+    meses = base.dados.index.intersection(meses)
     n = len(meses)
+    if n == 0:
+        return VisaoSocios(pd.DataFrame(), pd.DataFrame(), ["Sem meses disponíveis para a visão dos sócios."])
     anualizar = 12 / n
     dados = base.dados.loc[base.dados.index.intersection(meses)]
     part = _participacoes(cliente.socios)
@@ -97,7 +100,7 @@ def visao_socios(cliente: Cliente, base: BaseMensal, resultado: Resultado, meses
             obs.append(f"{ROTULO[regime]}: sem DRE e sem lucro estimado — dividendos não calculados.")
             continue
         irpj_csll = float(df[["irpj", "csll"]].sum().sum()) if {"irpj", "csll"} <= set(df.columns) else 0.0
-        aliq_pj = irpj_csll / lucro if lucro > 0 else 0.0
+        aliq_pj = aliquota_efetiva_pj(irpj_csll, lucro)
         dividendos = max(lucro, 0.0) * cliente.distribuicao_lucro
         tot = {"irrf_dividendos": 0.0, "irpfm": 0.0, "inss_socios": 0.0, "irrf_pro_labore": 0.0}
         for s, p in zip(cliente.socios, part):

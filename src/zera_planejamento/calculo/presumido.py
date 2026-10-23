@@ -13,10 +13,11 @@ Lucro Presumido.
 """
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from .comum import (Contexto, base_credito_iva, cbs_ibs, chave_periodo, encargos_patronais, fator_icms_iss,
-                    nao_cumulativo, pis_cofins_vigente, ratear, receita_por_coluna, tributos_locais)
+                    _nao_cumulativo_array, pis_cofins_vigente, ratear_array, receita_por_coluna, tributos_locais)
 
 
 def excesso_lc224(rec_tri: pd.Series, meses_tri: pd.Series, inicio: pd.Period, ctx: Contexto) -> pd.Series:
@@ -49,46 +50,48 @@ def calcular_presumido(ctx: Contexto) -> pd.DataFrame:
     rec = receita_por_coluna(ctx)
     rl = rec.sum(axis=1)
     locais = tributos_locais(ctx)
-    fator = fator_icms_iss(ctx)
-    icms_deb = locais["icms_debito"] * fator
-    icms_cred = locais["icms_credito"] * fator
-    iss = locais["iss"] * fator
-    vigente = pis_cofins_vigente(ctx)
+    fator = fator_icms_iss(ctx).to_numpy()
+    icms_deb = locais["icms_debito"].to_numpy() * fator
+    icms_cred = locais["icms_credito"].to_numpy() * fator
+    iss = locais["iss"].to_numpy() * fator
+    vigente = pis_cofins_vigente(ctx).to_numpy()
 
-    base_pc = (rl - (icms_deb if rf.excluir_icms_base_pis_cofins else 0)).clip(lower=0)
+    base_pc = np.maximum(rl.to_numpy() - (icms_deb if rf.excluir_icms_base_pis_cofins else 0), 0)
     pis = base_pc * rf.pis_cumulativo * vigente
     cofins = base_pc * rf.cofins_cumulativo * vigente
-    iva = cbs_ibs(ctx, (rl - icms_deb - iss).clip(lower=0), base_credito_iva(ctx, locais))
+    iva = cbs_ibs(ctx, np.maximum(rl.to_numpy() - icms_deb - iss, 0), base_credito_iva(ctx, locais))
 
     pres_irpj = pd.Series({c: rf.presuncao[c][0] for c in rec.columns})
     pres_csll = pd.Series({c: rf.presuncao[c][1] for c in rec.columns})
-    fin = ctx.col("receitas_financeiras")
-    base_irpj_mes = rec.mul(pres_irpj, axis=1).sum(axis=1) + fin
-    base_csll_mes = rec.mul(pres_csll, axis=1).sum(axis=1) + fin
+    fin = ctx.vetor("receitas_financeiras")
+    base_irpj_mes = (rec.to_numpy() * pres_irpj.to_numpy()).sum(axis=1) + fin
+    base_csll_mes = (rec.to_numpy() * pres_csll.to_numpy()).sum(axis=1) + fin
 
     tri = chave_periodo(idx)
     rec_tri, meses_tri = rl.groupby(tri).sum(), rl.groupby(tri).size()
     exc_irpj = excesso_lc224(rec_tri, meses_tri, pd.Period(rf.lc224_inicio_irpj, "M"), ctx)
     exc_csll = excesso_lc224(rec_tri, meses_tri, pd.Period(rf.lc224_inicio_csll, "M"), ctx)
 
-    irpj, csll = pd.Series(0.0, index=idx), pd.Series(0.0, index=idx)
-    acr_irpj, acr_csll = pd.Series(0.0, index=idx), pd.Series(0.0, index=idx)
-    for k, meses in tri.groupby(tri).groups.items():
-        meses = pd.PeriodIndex(meses)
-        n = len(meses)
-        rq = rec.loc[meses].sum()
+    irpj, csll = np.zeros(len(idx)), np.zeros(len(idx))
+    acr_irpj, acr_csll = np.zeros(len(idx)), np.zeros(len(idx))
+    receitas = rec.to_numpy()
+    pesos_ir, pesos_cs = base_irpj_mes, base_csll_mes
+    pres_ir, pres_cs = pres_irpj.to_numpy(), pres_csll.to_numpy()
+    for k, pos in tri.groupby(tri).indices.items():
+        n = len(pos)
+        rq = receitas[pos].sum(axis=0)
         part = rq / rq.sum() if rq.sum() > 0 else rq * 0
-        extra_irpj = exc_irpj[k] * float((part * pres_irpj).sum()) * rf.lc224_acrescimo
-        extra_csll = exc_csll[k] * float((part * pres_csll).sum()) * rf.lc224_acrescimo
-        b_irpj = max(0.0, base_irpj_mes[meses].sum() + extra_irpj)
-        b_csll = max(0.0, base_csll_mes[meses].sum() + extra_csll)
+        extra_irpj = exc_irpj[k] * float((part * pres_ir).sum()) * rf.lc224_acrescimo
+        extra_csll = exc_csll[k] * float((part * pres_cs).sum()) * rf.lc224_acrescimo
+        b_irpj = max(0.0, pesos_ir[pos].sum() + extra_irpj)
+        b_csll = max(0.0, pesos_cs[pos].sum() + extra_csll)
         v_irpj = rf.irpj * b_irpj + rf.irpj_adicional * max(0.0, b_irpj - rf.irpj_limite_adicional_mes * n)
-        irpj[meses] = ratear(v_irpj, base_irpj_mes[meses])
-        csll[meses] = ratear(rf.csll * b_csll, base_csll_mes[meses])
-        acr_irpj[meses] = ratear(extra_irpj, base_irpj_mes[meses])
-        acr_csll[meses] = ratear(extra_csll, base_csll_mes[meses])
+        irpj[pos] = ratear_array(v_irpj, pesos_ir[pos])
+        csll[pos] = ratear_array(rf.csll * b_csll, pesos_cs[pos])
+        acr_irpj[pos] = ratear_array(extra_irpj, pesos_ir[pos])
+        acr_csll[pos] = ratear_array(extra_csll, pesos_cs[pos])
 
-    icms, _ = nao_cumulativo(icms_deb, icms_cred)
+    icms, _ = _nao_cumulativo_array(icms_deb, icms_cred)
     res = pd.DataFrame({
         "receita": rl, "base_presumida_irpj": base_irpj_mes + acr_irpj, "base_presumida_csll": base_csll_mes + acr_csll,
         "acrescimo_lc224_irpj": acr_irpj, "acrescimo_lc224_csll": acr_csll,
