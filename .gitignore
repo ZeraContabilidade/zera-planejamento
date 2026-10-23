@@ -1,8 +1,8 @@
 # Dados de clientes NUNCA vão para o repositório
 amostras/*
 !amostras/LEIA-ME.md
-dados/
-saidas/
+/dados/
+/saidas/
 *.xls
 *.xlsx
 !tests/fixtures/*.xlsx
