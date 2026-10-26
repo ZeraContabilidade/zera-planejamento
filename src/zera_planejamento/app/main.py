@@ -14,7 +14,8 @@ aplicar_identidade()
 
 paginas = {
     "Visão geral": [
-        st.Page("paginas/dashboard.py", title="Dashboard", icon=":material/dashboard:", default=True),
+        st.Page("paginas/inicio.py", title="Mesa do escritório", icon=":material/home:", default=True),
+        st.Page("paginas/dashboard.py", title="Dashboard do cliente", icon=":material/dashboard:"),
     ],
     "Cliente": [
         st.Page("paginas/cadastro.py", title="Cadastro", icon=":material/badge:"),
@@ -25,6 +26,7 @@ paginas = {
     "Análise": [
         st.Page("paginas/planejamento.py", title="Planejamento", icon=":material/insights:"),
         st.Page("paginas/anos.py", title="Comparação entre anos", icon=":material/compare_arrows:"),
+        st.Page("paginas/simulador.py", title="Simulador “E se…”", icon=":material/tune:"),
         st.Page("paginas/socios.py", title="Sócios e pró-labore", icon=":material/group:"),
         st.Page("paginas/relatorios.py", title="Relatórios", icon=":material/picture_as_pdf:"),
     ],
@@ -43,10 +45,19 @@ with st.sidebar:
     atual = cliente_atual()
     if opcoes:
         ids = list(opcoes)
-        escolhido = st.selectbox("Cliente", ids, format_func=opcoes.get,
-                                 index=ids.index(atual.id) if atual else 0,
-                                 on_change=lambda: st.session_state.pop("novo_cliente", None))
-        st.session_state["cliente_id"] = escolhido
+        # o seletor segue o cliente escolhido em outras telas (cartões da Mesa, cadastro salvo); a escolha feita
+        # aqui chega antes pelo on_change, então não é desfeita
+        if st.session_state.get("cliente_id") in ids:
+            st.session_state["sel_cliente"] = st.session_state["cliente_id"]
+        elif st.session_state.get("sel_cliente") not in ids:
+            st.session_state["sel_cliente"] = ids[0]
+
+        def _trocar_cliente():
+            st.session_state["cliente_id"] = st.session_state["sel_cliente"]
+            st.session_state.pop("novo_cliente", None)
+
+        st.selectbox("Cliente", ids, format_func=opcoes.get, key="sel_cliente", on_change=_trocar_cliente)
+        st.session_state["cliente_id"] = st.session_state["sel_cliente"]
     else:
         st.caption("Nenhum cliente cadastrado ainda.")
     pagina_por_nome = {pg.url_path: pg for grupo in paginas.values() for pg in grupo}
@@ -71,4 +82,4 @@ with st.sidebar:
     st.divider()
     st.caption(f"Dados em `{pasta_dados()}`  \nVersão {__version__} · rascunho técnico para revisão")
 
-st.navigation(paginas).run()
+st.navigation(paginas, expanded=True).run()
