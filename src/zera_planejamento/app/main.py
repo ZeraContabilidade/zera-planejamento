@@ -24,6 +24,7 @@ paginas = {
     ],
     "Análise": [
         st.Page("paginas/planejamento.py", title="Planejamento", icon=":material/insights:"),
+        st.Page("paginas/anos.py", title="Comparação entre anos", icon=":material/compare_arrows:"),
         st.Page("paginas/socios.py", title="Sócios e pró-labore", icon=":material/group:"),
         st.Page("paginas/relatorios.py", title="Relatórios", icon=":material/picture_as_pdf:"),
     ],

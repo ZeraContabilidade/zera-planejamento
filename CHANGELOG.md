@@ -1,5 +1,20 @@
 # Histórico de versões
 
+## 0.7.0 — 26/10/2026
+**Comparação entre anos** — nova tela em Análise
+- Realizado de cada ano, estimativa de fechamento do ano corrente (meses reais + estimados) e projeção do próximo ano
+  (12 meses), todos pelo motor na série inteira: RBT12, trimestres, prejuízo e regras de cada ano (CBS/IBS e RBT12
+  sem o mês anterior a partir de 2027).
+- Comparação no mesmo período (ex.: jan–set/2025 × jan–set/2026): receita e tributos por regime, diferença e variação.
+- Base da projeção: tendência ou média dos últimos 12 meses, ou média + crescimento informado (padrão: o crescimento
+  observado no mesmo período). Cenários Pessimista/Central/Otimista com variação ajustável.
+- Destaque do próximo ano (regime de menor carga e economia sobre o atual), gráficos de tributos por ano e de receita
+  mês a mês por ano, resumo anual, cenários e exportação em Excel.
+- Ano com meses reais sem DRE não mostra o Lucro Real (sairia sobre lucro ≈ receita) e avisa; o Simples híbrido só
+  aparece a partir de 2027. Primeiro ano parcial não entra na variação.
+- 6 testes com memória de cálculo (crescimento informado, mesmo período, cenários, meses por tipo, ano parcial, ano
+  sem DRE). Conferido também com os dados reais da CS Geartech (local).
+
 ## 0.6.1 — 23/10/2026
 **Validação com os relatórios reais da CS Geartech (jan–set/2026)**
 - Regressão confirmada no centavo depois da otimização do motor: Presumido R$ 284.704,68, Simples R$ 237.945,88,
