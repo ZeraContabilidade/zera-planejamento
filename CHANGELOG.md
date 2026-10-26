@@ -1,5 +1,26 @@
 # Histórico de versões
 
+## 0.8.0 — 26/10/2026
+**Visual renovado (identidade Zera mantida: preto, dourado, Cormorant Garamond e Inter; logo intacta)**
+- Cabeçalho de todas as telas em faixa preta, com padrão de diagonais douradas, a faixa diagonal do timbrado e a logo.
+- Cartões com movimento e brilho dourado ao passar o mouse; entrada suave (sem esconder conteúdo se a animação não
+  rodar); item ativo do menu marcado com fio dourado; menu sempre aberto.
+
+**Mesa do escritório** — nova tela inicial
+- Saudação, números da carteira (clientes, roteiro completo, receita dos últimos 12 meses, próxima decisão), agenda de
+  decisões tributárias e atalhos.
+- Um cartão por cliente com anel de progresso do roteiro, regime, receita de 12 meses e o próximo passo; busca por
+  nome ou CNPJ; "Abrir dashboard" troca o cliente e abre o dashboard dele.
+
+**Simulador "E se…"** — nova tela em Análise
+- Controles de receita, folha, custos e despesas e pró-labore; o motor recalcula na hora (≈ 0,1 s) quanto cada regime
+  pagaria nos próximos 12 meses, mostra se o regime de menor custo muda, a economia sobre o regime atual e o Fator R.
+- Barras "simulado × cenário base" com variação por regime. Ajustes só nos meses projetados (o histórico continua
+  real, então RBT12 e Fator R mudam aos poucos, como na prática).
+
+**Correções:** o seletor de cliente da barra lateral acompanha a escolha feita em outras telas.
+**Testes:** 4 novos (simulador e navegação da Mesa).
+
 ## 0.7.0 — 26/10/2026
 **Comparação entre anos** — nova tela em Análise
 - Realizado de cada ano, estimativa de fechamento do ano corrente (meses reais + estimados) e projeção do próximo ano

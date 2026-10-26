@@ -1,6 +1,8 @@
 # Manual da equipe — Zera Planejamento Tributário
 
 ## 1. Abrir o sistema
+- O sistema abre na **Mesa do escritório**: números da carteira, agenda de decisões e um cartão por cliente com o
+  progresso do roteiro. Clique em **Abrir dashboard** no cartão para ir direto ao cliente.
 - Na barra lateral, o **Roteiro do cliente** mostra o que já foi feito e o próximo passo; clique em cada item para ir
   direto à tela.
 - Dois cliques em **Iniciar Zera Planejamento.bat**. Abre uma janela preta e, em seguida, o navegador. Mantenha a janela preta aberta enquanto usa.
@@ -82,6 +84,11 @@ Também dá para baixar a base em Excel, preencher e enviar de volta.
 - **Cenários do próximo ano:** pessimista, central e otimista; a faixa preta mostra o regime de menor carga e a
   economia estimada — a decisão de regime é feita em janeiro.
 - Anos sem DRE não mostram o Lucro Real: importe a DRE para comparar.
+
+## 6.1.2 Simulador "E se…"
+Mexa nos controles de receita, folha, custos e pró-labore: o sistema recalcula na hora quanto cada regime pagaria nos
+próximos 12 meses e avisa se o regime mais barato muda. Use na reunião com o cliente; **Voltar ao cenário base**
+desfaz tudo.
 
 ## 6.2 Sócios e pró-labore
 - Cadastre cada sócio (participação, pró-labore, dependentes, outras rendas) e quanto do lucro é distribuído.
