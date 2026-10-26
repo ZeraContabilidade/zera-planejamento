@@ -25,7 +25,7 @@ Sistema Domínio). Faz planejamento tributário mensal com projeção semestral:
 **Natureza do resultado:** rascunho técnico para o contador revisar. Nunca prometer resultado fiscal.
 
 Repositório: `github.com/ZeraContabilidade/zera-planejamento` (privado). Branch principal: `main`.
-Versão atual: **0.8.0**. Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
+Versão atual: **0.9.0**. Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
 
 ---
 
@@ -33,7 +33,7 @@ Versão atual: **0.8.0**. Histórico em `CHANGELOG.md`; especificação viva e r
 
 ```bash
 python -m pip install -e .[dev]      # Python 3.11+ (local usa 3.13; CI roda 3.11 e 3.12, Windows e Ubuntu)
-python -m pytest                     # 101 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
+python -m pytest                     # 107 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
 zera-planejamento app                # abre o Streamlit (roda dentro de src/zera_planejamento/app/ p/ ler o tema)
 zera-planejamento carteira           # painel de todos os clientes no terminal
 ```
@@ -125,6 +125,7 @@ várias vezes) → telas / `relatorio.gerar_relatorios`.
 | 0.6.0 | Importação de qualquer documento financeiro (Excel, CSV, PDF) com mapa de rótulos por cliente. |
 | 0.7.0 | Comparação entre anos (realizado, mesmo período, estimativa do ano corrente, projeção do próximo ano). |
 | 0.8.0 | Visual renovado, Mesa do escritório (tela inicial) e Simulador “E se…”. |
+| 0.9.0 | Reforma 2026–2033 ano a ano, regime diferenciado do IBS/CBS (redução só no débito), diagnóstico de precisão. |
 
 ---
 
@@ -177,6 +178,10 @@ Crie `docs/REVISAO-CODEX.md` com uma tabela de achados, do mais grave para o men
 - Não "corrija" regra tributária sem citar a lei/IN; se discordar de uma regra, marque `[CONFERIR]` e explique.
 
 ---
+
+> **Aviso ao Codex (0.9.0):** o Claude Code alterou uma linha da sua área, sem PR seu em aberto:
+> `calculo/comum.py::cbs_ibs` multiplica a base de **débito** por `1 - ctx.rr.reducao_aliquota` (novo campo de
+> `regras/reforma.py::RegrasReforma`, padrão 0). Com 0, nenhum número muda (foto do motor conferida).
 
 ## 9. Tarefa paralela para o Codex (sem conflito com o Claude Code)
 

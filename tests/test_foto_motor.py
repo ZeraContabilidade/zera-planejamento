@@ -54,9 +54,10 @@ def serializar(obj):
     if isinstance(obj, (pd.Index, pd.Series, np.ndarray)):
         return [serializar(x) for x in obj]
     if dataclasses.is_dataclass(obj):
-        # Prazos usam a data do sistema; não são resultados do motor. Gerado_em é volátil.
+        # Prazos usam a data do sistema e pendências são textos de aviso; não são resultados do motor.
+        # Gerado_em é volátil.
         return {f.name: serializar(getattr(obj, f.name)) for f in dataclasses.fields(obj)
-                if f.name not in ('gerado_em', 'prazos')}
+                if f.name not in ('gerado_em', 'prazos', 'pendencias')}
     if isinstance(obj, dict):
         return {str(k): serializar(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
@@ -115,6 +116,7 @@ def test_foto_motor(nome, b, cli):
         for regime in ('presumido', 'real'):
             linha = resumo['dados'][resumo['indice'].index(regime)]
             linha[coluna] = linha[coluna] / (1 + linha[coluna])
+    foto['planejamento'].pop('pendencias', None)   # textos de aviso (pendências [CONFERIR]) não são resultados
     comparar(serializar(calcular(b, cli)), foto['calcular'])
     comparar(serializar(gerar_planejamento(cli, b)), foto['planejamento'])
 

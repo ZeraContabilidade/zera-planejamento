@@ -8,6 +8,7 @@ from zera_planejamento.app.estado import base_do, exigir_cliente, planejamento_d
 from zera_planejamento.calculo import ROTULO
 from zera_planejamento.formatos import brl, brl_curto, comp, pct
 from zera_planejamento.painel import PERIODOS, montar_painel
+from zera_planejamento.precisao import diagnosticar, nota
 from zera_planejamento.projecao import CENARIOS
 from zera_planejamento.relatorio.graficos import COR
 
@@ -256,4 +257,25 @@ with b:
         with st.expander(f"Todos os alertas ({len(df_al)})"):
             for row in df_al.itertuples():
                 st.markdown(f"- **{row.nivel} · {row.origem}** — {row.mensagem}".replace("$", r"\$"))
+
+# ---------------- precisão da análise ----------------
+verif = diagnosticar(c, base)
+pontos, nivel = nota(verif)
+faltam = sorted([x for x in verif if not x.ok], key=lambda x: -x.peso)
+v.rotulo(f"Precisão da análise · {nivel.lower()}")
+a, b = st.columns([1, 3], vertical_alignment="center")
+with a:
+    v.cartao_cliente(f"Precisão {nivel.lower()}", f"{sum(x.ok for x in verif)} de {len(verif)} verificações",
+                     pontos / 100, [("Dados completos", True)] if not faltam else [(f"{len(faltam)} ponto(s) a melhorar",
+                                                                                  False)])
+with b:
+    if not faltam:
+        st.success("Os dados do cliente sustentam bem os números.", icon=":material/verified:")
+    for x in faltam[:4]:
+        st.page_link(x.pagina, label=f"{x.titulo}: {x.como}", icon=":material/arrow_forward:", help=x.impacto)
+    if len(faltam) > 4:
+        with st.expander(f"Mais {len(faltam) - 4} ponto(s)"):
+            for x in faltam[4:]:
+                st.page_link(x.pagina, label=f"{x.titulo}: {x.como}", icon=":material/arrow_forward:", help=x.impacto)
+
 v.rodape()

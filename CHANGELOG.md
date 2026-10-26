@@ -1,5 +1,29 @@
 # Histórico de versões
 
+## 0.9.0 — 26/10/2026
+**Reforma Tributária 2026–2033** — nova tela em Análise
+- Os mesmos 12 meses do cliente sob as regras de cada ano (técnica de `simular_transicao`, conferida no centavo),
+  com a composição de cada regime: PIS/Cofins → CBS, ICMS/ISS reduzidos de 2029 a 2032 e trocados pelo IBS em 2033.
+- Leitura: regime de menor carga em cada ano, ano da virada, variação do regime atual 2026 → 2033, regime que mais
+  sobe e ganho acumulado de escolher o melhor (2027–2033). Gráficos de evolução e de composição, cronograma legal da
+  transição (EC 132/2023 e LC 214/2025), tabela e Excel.
+- Sensibilidade: CBS e IBS de referência ajustáveis e regime diferenciado, com opção de salvar no cadastro.
+
+**Regime diferenciado do IBS/CBS (LC 214/2025)** — mais precisão
+- Reduções de 30% (profissões intelectuais), 60% (saúde, educação e outros) ou alíquota zero, no cadastro e na tela da
+  Reforma. A redução vale só sobre as vendas; o crédito das compras continua pela alíquota cheia do fornecedor
+  (`RegrasReforma.reducao_aliquota`, aplicada no débito em `calculo.comum.cbs_ibs`). [CONFERIR enquadramento]
+- Sem redução (padrão), nenhum número muda: foto do motor, casos à mão e regressão da CS Geartech conferidos.
+
+**Diagnóstico de precisão** (dashboard do cliente)
+- Nota de 0 a 100 com 10 verificações ponderadas (histórico de 13 e 24 meses, DRE mês a mês, folha, compras com
+  crédito, ICMS/ISS, RAT/FAP/Terceiros, dados da Receita, sócios, partilha do híbrido), o impacto de cada falta e o
+  atalho para a tela que resolve.
+
+**Testes:** 6 novos (Reforma calculada à mão em 2026 e 2033, sensibilidade da CBS, redução de 60%, indicadores,
+diagnóstico) e 1 caso à mão do regime diferenciado com crédito. A foto do motor deixa de comparar os textos de
+pendências (só números).
+
 ## 0.8.0 — 26/10/2026
 **Visual renovado (identidade Zera mantida: preto, dourado, Cormorant Garamond e Inter; logo intacta)**
 - Cabeçalho de todas as telas em faixa preta, com padrão de diagonais douradas, a faixa diagonal do timbrado e a logo.

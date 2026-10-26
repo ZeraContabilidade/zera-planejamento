@@ -11,6 +11,7 @@ Planejamento tributário mensal com projeção semestral para os clientes da **Z
 - **Dashboard:** recomendação, indicadores e gráficos interativos por cenário, com a identidade visual da Zera.
 - **Comparação entre anos:** realizado de cada ano, mesmo período (ex.: jan–set) e projeção do próximo ano em cenários.
 - **Mesa do escritório e Simulador “E se…”:** a carteira de relance e o imposto de cada regime recalculado ao vivo.
+- **Reforma Tributária 2026–2033 e precisão:** o cliente ano a ano na transição, regime diferenciado do IBS/CBS e diagnóstico do que falta para números mais precisos.
 - **Saída:** regime de menor carga, pontos de equilíbrio e alertas, com relatórios em Excel e PDF no padrão Zera.
 
 > Resultado é **rascunho técnico**: o contador revisa antes de levar ao cliente.

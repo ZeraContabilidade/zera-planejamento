@@ -44,6 +44,11 @@ class RegrasReforma:
     ibs_2027_2028: float = 0.001             # 0,05% estadual + 0,05% municipal
     credito_imobilizado: bool = True         # CBS/IBS: crédito integral na aquisição de ativo
     sobrescrever: dict[int, dict[str, float]] = field(default_factory=dict)   # {ano: {"cbs":..,"ibs":..}}
+    # Regimes diferenciados (LC 214/2025): redução das alíquotas de IBS/CBS sobre as VENDAS do contribuinte —
+    # 30% (profissões intelectuais regulamentadas), 60% (saúde, educação, insumos agropecuários e outros),
+    # 100% (alíquota zero). O crédito das compras continua pela alíquota cheia cobrada do fornecedor.
+    # [CONFERIR artigo, requisitos e lista de atividades no caso de cada cliente]
+    reducao_aliquota: float = 0.0
 
     def pis_cofins_vigente(self, ano: int) -> bool:
         return not self.ativa or ano <= 2026

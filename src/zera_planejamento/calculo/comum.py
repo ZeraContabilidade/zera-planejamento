@@ -179,7 +179,9 @@ def cbs_ibs(ctx: Contexto, base_debito: pd.Series, base_credito: pd.Series) -> p
     anos = ctx.anos()
     a_cbs = np.array([ctx.rr.cbs(a) for a in anos])
     a_ibs = np.array([ctx.rr.ibs(a) for a in anos])
-    debito, credito = np.asarray(base_debito), np.asarray(base_credito)
+    # regime diferenciado: a redução vale só para o débito (vendas); o crédito segue a alíquota cheia do fornecedor
+    debito = np.asarray(base_debito) * (1 - ctx.rr.reducao_aliquota)
+    credito = np.asarray(base_credito)
     cbs, _ = _nao_cumulativo_array(debito * a_cbs, credito * a_cbs)
     ibs, _ = _nao_cumulativo_array(debito * a_ibs, credito * a_ibs)
     return pd.DataFrame({"cbs": cbs, "ibs": ibs, "aliq_cbs": a_cbs, "aliq_ibs": a_ibs}, index=ctx.d.index)

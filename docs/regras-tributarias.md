@@ -69,6 +69,9 @@ art. 41). Dias úteis sem feriados nacionais (fixos e Sexta-feira Santa).
 - CBS/IBS por fora: não entram na receita, na base presumida nem no lucro. Até 2032, ICMS e ISS ficam fora da base da CBS/IBS (LC 214, art. 12, § 2º).
 - Crédito amplo (art. 47): insumos, energia, aluguel, serviços, fretes, uso e consumo e imobilizado (opção).
 - Premissa de preço: o valor da operação sem tributos é mantido e a CBS/IBS é cobrada por fora.
+- **Regime diferenciado** (LC 214/2025): redução de 30%, 60% ou alíquota zero do IBS/CBS sobre as vendas, informada
+  no cadastro; o crédito das compras continua pela alíquota cheia. `[CONFERIR]` artigo, requisitos e enquadramento.
+- **Ano a ano até 2033:** tela "Reforma Tributária 2026–2033" aplica as regras de cada ano aos mesmos 12 meses.
 
 ## Fora do modelo
 - ICMS-ST, monofásicos e exportação no PGDAS-D;
