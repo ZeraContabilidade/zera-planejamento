@@ -25,7 +25,7 @@ Sistema Domínio). Faz planejamento tributário mensal com projeção semestral:
 **Natureza do resultado:** rascunho técnico para o contador revisar. Nunca prometer resultado fiscal.
 
 Repositório: `github.com/ZeraContabilidade/zera-planejamento` (privado). Branch principal: `main`.
-Versão atual: **0.6.1**. Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
+Versão atual: **0.7.0**. Histórico em `CHANGELOG.md`; especificação viva e roadmap em `PROMPT.md`.
 
 ---
 
@@ -33,7 +33,7 @@ Versão atual: **0.6.1**. Histórico em `CHANGELOG.md`; especificação viva e r
 
 ```bash
 python -m pip install -e .[dev]      # Python 3.11+ (local usa 3.13; CI roda 3.11 e 3.12, Windows e Ubuntu)
-python -m pytest                     # 91 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
+python -m pytest                     # 97 testes; 2 são pulados sem amostras/cs_geartech (dados reais, fora do git)
 zera-planejamento app                # abre o Streamlit (roda dentro de src/zera_planejamento/app/ p/ ler o tema)
 zera-planejamento carteira           # painel de todos os clientes no terminal
 ```
@@ -123,6 +123,7 @@ várias vezes) → telas / `relatorio.gerar_relatorios`.
 | 0.5.0 | Parecer ao cliente (Word + PDF), casos de validação calculados à mão, roteiro do cliente na navegação. |
 | 0.5.1 | Revisão crítica e otimização do motor (Codex, PR #6): redutor do IRPFM conforme o art. 16-B, motor ~10× mais rápido. |
 | 0.6.0 | Importação de qualquer documento financeiro (Excel, CSV, PDF) com mapa de rótulos por cliente. |
+| 0.7.0 | Comparação entre anos (realizado, mesmo período, estimativa do ano corrente, projeção do próximo ano). |
 
 ---
 

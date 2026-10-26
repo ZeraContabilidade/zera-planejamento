@@ -75,6 +75,14 @@ Também dá para baixar a base em Excel, preencher e enviar de volta.
 - **Pontos de equilíbrio:** margem em que o Lucro Real passa a valer a pena, faturamento em que Simples e Presumido se igualam, folha necessária para o Fator R.
 - **Transição 2026–2033:** os mesmos 12 meses sob a regra de cada ano.
 
+## 6.1.1 Comparação entre anos (página **Comparação entre anos**)
+- **Mesmo período:** compara os meses já fechados deste ano com os mesmos meses do ano anterior (ex.: jan–set).
+- **Por ano:** realizado dos anos anteriores, o ano atual com os meses que faltam estimados e o próximo ano projetado.
+- **Base da projeção:** tendência, média ou média + crescimento (vazio = usa o crescimento observado).
+- **Cenários do próximo ano:** pessimista, central e otimista; a faixa preta mostra o regime de menor carga e a
+  economia estimada — a decisão de regime é feita em janeiro.
+- Anos sem DRE não mostram o Lucro Real: importe a DRE para comparar.
+
 ## 6.2 Sócios e pró-labore
 - Cadastre cada sócio (participação, pró-labore, dependentes, outras rendas) e quanto do lucro é distribuído.
 - A tabela mostra empresa + sócios por regime (Lei 15.270/2025: lucros acima de R$ 50 mil/mês e imposto mínimo).
