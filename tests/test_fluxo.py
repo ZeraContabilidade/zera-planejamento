@@ -80,7 +80,7 @@ def test_app_todas_as_paginas(tmp_path, monkeypatch, base_exemplo, cliente):
     import zera_planejamento.app as app_pkg
     from pathlib import Path
     main = Path(app_pkg.__file__).parent / "main.py"
-    for pagina in ("inicio", "dashboard", "cadastro", "importar", "documentos", "base", "planejamento", "anos", "simulador", "socios", "relatorios", "carteira", "depara",
+    for pagina in ("inicio", "dashboard", "cadastro", "importar", "documentos", "base", "planejamento", "anos", "reforma", "simulador", "socios", "relatorios", "carteira", "depara",
                    "configuracoes"):
         at = AppTest.from_file(str(main), default_timeout=300)
         at.session_state["cliente_id"] = cliente.id

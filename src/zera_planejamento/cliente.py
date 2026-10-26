@@ -113,7 +113,7 @@ class Cliente:
 
     def regras_reforma(self) -> RegrasReforma:
         r = RegrasReforma()
-        for k in ("cbs_referencia", "ibs_referencia"):
+        for k in ("cbs_referencia", "ibs_referencia", "reducao_aliquota"):
             if k in self.reforma:
                 setattr(r, k, float(self.reforma[k]))
         return r

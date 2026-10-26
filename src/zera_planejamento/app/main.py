@@ -26,6 +26,7 @@ paginas = {
     "Análise": [
         st.Page("paginas/planejamento.py", title="Planejamento", icon=":material/insights:"),
         st.Page("paginas/anos.py", title="Comparação entre anos", icon=":material/compare_arrows:"),
+        st.Page("paginas/reforma.py", title="Reforma Tributária 2026–2033", icon=":material/account_balance:"),
         st.Page("paginas/simulador.py", title="Simulador “E se…”", icon=":material/tune:"),
         st.Page("paginas/socios.py", title="Sócios e pró-labore", icon=":material/group:"),
         st.Page("paginas/relatorios.py", title="Relatórios", icon=":material/picture_as_pdf:"),

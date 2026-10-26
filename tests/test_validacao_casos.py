@@ -144,3 +144,15 @@ def test_real_prejuizo_compensado_com_trava_de_30():
     perto(r.loc["2026-04":"2026-06", "irpj"].sum(), 19_593.75)
     perto(r.loc["2026-04":"2026-06", "csll"].sum(), 9_213.75)
     perto(r.loc["2026-06", "saldo_prejuizo"], 139_875.00)
+
+
+def test_regime_diferenciado_reduz_so_o_debito_de_cbs_ibs():
+    # Jan/2027, serviços R$ 50 mil, ISS 2%, compras com crédito R$ 10 mil; redução de 30% (LC 214/2025)
+    # débito CBS = 49.000 × 9,11% × 70% = 3.124,73; crédito = 10.000 × 9,11% (alíquota cheia) = 911,00 → 2.213,73
+    # débito IBS = 49.000 × 0,1% × 70% = 34,30; crédito = 10.000 × 0,1% = 10,00 → 24,30
+    import dataclasses
+    cli = dataclasses.replace(SERVICOS, reforma={"reducao_aliquota": 0.30})
+    b = base("2026-01", "2027-01", rec_anexo_iii=50_000, cred_insumos=10_000)
+    p = calcular(b, cli).regimes["presumido"].loc["2027-01"]
+    perto(p["cbs"], 2_213.73)
+    perto(p["ibs"], 24.30)

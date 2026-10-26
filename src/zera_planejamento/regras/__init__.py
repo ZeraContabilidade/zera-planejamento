@@ -35,6 +35,8 @@ def pendencias_conferir() -> list[str]:
         "Tabelas de 2026 da pessoa física (salário mínimo R$ 1.621,00, teto do INSS R$ 8.475,55, IRRF da "
         "Lei 15.191/2025): conferir a atualização anual.",
         "Prazos de opção do Simples híbrido (IBS/CBS por fora): conferir a resolução do CGSN vigente.",
+        "Regimes diferenciados do IBS/CBS (reduções de 30%, 60% ou alíquota zero — LC 214/2025): conferir artigo, "
+        "requisitos e se a atividade do cliente se enquadra; a redução é aplicada a toda a receita do cliente.",
     ]
 
 

@@ -105,6 +105,13 @@ with st.form("cadastro"):
                          help="[CONFERIR] O Senado fixa a alíquota de 2027 até 15/12/2026.") / 100
     ibs = b.number_input("IBS — alíquota de referência (%)", 10.0, 25.0,
                          float(c.reforma.get("ibs_referencia", 0.187)) * 100, 0.01) / 100
+    reducoes = {0.0: "Sem redução", 0.3: "30% — profissões intelectuais regulamentadas",
+                0.6: "60% — saúde, educação e outros", 1.0: "Alíquota zero"}
+    red_atual = float(c.reforma.get("reducao_aliquota", 0.0))
+    reducao = st.selectbox("Regime diferenciado do IBS/CBS (LC 214/2025)", list(reducoes),
+                           index=list(reducoes).index(red_atual) if red_atual in reducoes else 0, format_func=reducoes.get,
+                           help="Redução sobre as vendas a partir de 2027; o crédito das compras continua cheio. "
+                                "[CONFERIR] enquadramento e requisitos.")
     a, b, d, e, f = st.columns(5)
     p = c.projecao
     meses = a.number_input("Meses projetados", 1, 12, p.meses)
@@ -126,7 +133,7 @@ if salvar:
                      icms_aliquota_entrada=icms_e, rat=rat, fap=fap, terceiros=terceiros,
                      fator_r_incluir_cpp=incluir_cpp, lr_periodo=lr, prejuizo_fiscal_inicial=prej,
                      base_negativa_inicial=bneg, lucro_anual_estimado=lucro or None,
-                     presuncao=c.presuncao, reforma={"cbs_referencia": cbs, "ibs_referencia": ibs},
+                     presuncao=c.presuncao, reforma={"cbs_referencia": cbs, "ibs_referencia": ibs, "reducao_aliquota": reducao},
                      projecao=Projecao(meses=int(meses), janela=int(janela), metodo=metodo, otimista=otim, pessimista=pess,
                                        sazonalidade=p.sazonalidade),
                      depara=c.depara, observacoes=obs, socios=c.socios, distribuicao_lucro=c.distribuicao_lucro,

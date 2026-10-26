@@ -85,6 +85,15 @@ Também dá para baixar a base em Excel, preencher e enviar de volta.
   economia estimada — a decisão de regime é feita em janeiro.
 - Anos sem DRE não mostram o Lucro Real: importe a DRE para comparar.
 
+## 6.1.3 Reforma Tributária 2026–2033
+Mostra quanto o cliente pagaria em cada regime de 2026 a 2033 com os números atuais, a composição de cada ano
+(PIS/Cofins → CBS; ICMS/ISS → IBS) e o cronograma da transição. Ajuste a CBS/IBS de referência e o regime
+diferenciado (reduções de 30% ou 60%) para ver a sensibilidade; **Salvar estas premissas** grava no cadastro.
+
+## 6.1.4 Precisão da análise (no Dashboard)
+Nota de 0 a 100 dizendo o quanto os dados sustentam os números, com os pontos a melhorar em ordem de impacto e o
+atalho para resolver cada um. Antes de levar ao cliente, mire em precisão **alta**.
+
 ## 6.1.2 Simulador "E se…"
 Mexa nos controles de receita, folha, custos e pró-labore: o sistema recalcula na hora quanto cada regime pagaria nos
 próximos 12 meses e avisa se o regime mais barato muda. Use na reunião com o cliente; **Voltar ao cenário base**
